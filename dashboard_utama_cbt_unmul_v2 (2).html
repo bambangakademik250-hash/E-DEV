@@ -1,0 +1,813 @@
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0d1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#252d42;--bg5:#2d3650;
+--brd:rgba(255,255,255,0.07);--brd2:rgba(255,255,255,0.13);
+--tx:#dde2f0;--tx2:#8591ac;--tx3:#4e5870;
+--ac:#4f7cff;--ac2:#3d63d4;
+--gr:#1fba84;--gr2:rgba(31,186,132,0.13);
+--am:#f0a623;--am2:rgba(240,166,35,0.13);
+--rd:#f05353;--rd2:rgba(240,83,83,0.13);
+--tl:#22b4d6;--tl2:rgba(34,180,214,0.13);
+--pu:#9b7ff4;--pu2:rgba(155,127,244,0.13);
+--r:8px;--rl:12px;
+font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--tx)
+}
+body{background:var(--bg);min-height:700px}
+.shell{display:flex;flex-direction:column;height:700px;overflow:hidden}
+
+.hdr{height:52px;background:var(--bg2);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
+.hdr-logo{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14px;color:var(--ac);letter-spacing:-.3px}
+.logo-sq{width:26px;height:26px;background:var(--ac);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:900}
+.hdr-sep{width:1px;height:20px;background:var(--brd2);margin:0 4px}
+.hdr-sub{font-size:11px;color:var(--tx3)}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.live-dot{background:var(--gr2);color:var(--gr);font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;border:1px solid rgba(31,186,132,.25)}
+.ava{width:28px;height:28px;border-radius:50%;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+
+.body{display:flex;flex:1;overflow:hidden}
+
+.nav{width:52px;background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:2px;flex-shrink:0}
+.nb{width:38px;height:38px;border-radius:var(--r);border:none;background:none;color:var(--tx3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s}
+.nb:hover,.nb.on{background:var(--bg3);color:var(--ac)}
+.nb.on{border:1px solid rgba(79,124,255,.3)}
+.ndiv{width:22px;height:1px;background:var(--brd);margin:4px 0}
+
+.sb{width:240px;background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sb-hdr{padding:12px 12px 8px;border-bottom:1px solid var(--brd)}
+.sb-title{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.sb-srch{width:100%;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:5px 9px;font-size:12px;color:var(--tx);outline:none}
+.sb-srch:focus{border-color:var(--ac)}
+.sb-srch::placeholder{color:var(--tx3)}
+.sb-tabs{display:flex;gap:3px;margin-top:7px}
+.st{flex:1;padding:4px;border-radius:6px;border:none;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
+.st.on{background:var(--ac);color:#fff}
+.st:not(.on){background:var(--bg3);color:var(--tx2)}
+
+.sb-scroll{flex:1;overflow-y:auto;padding:6px}
+.sb-scroll::-webkit-scrollbar{width:3px}
+.sb-scroll::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+.sec-lbl{font-size:10px;color:var(--tx3);font-weight:700;letter-spacing:.5px;padding:7px 8px 3px;text-transform:uppercase}
+.pi{padding:7px 8px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:7px;margin-bottom:1px;transition:background .1s;border:1px solid transparent}
+.pi:hover{background:var(--bg3)}
+.pi.sel{background:var(--bg3);border-color:var(--ac)}
+.pi-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.pi-info{flex:1;min-width:0}
+.pi-nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx)}
+.pi-nim{font-size:10px;color:var(--tx3)}
+.pi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.d-on{background:var(--gr)}.d-done{background:var(--tl)}.d-off{background:var(--tx3)}.d-warn{background:var(--am)}
+
+.main{flex:1;overflow-y:auto;background:var(--bg);padding:16px}
+.main::-webkit-scrollbar{width:5px}
+.main::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px}
+.page{display:none}.page.on{display:block}
+
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.pt{font-size:17px;font-weight:800;color:var(--tx)}
+.ps{font-size:11px;color:var(--tx2);margin-top:2px}
+.btn{padding:6px 13px;border-radius:var(--r);border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:var(--ac2)}
+.btn-g{background:var(--bg3);color:var(--tx2);border:1px solid var(--brd)}.btn-g:hover{background:var(--bg4);color:var(--tx)}
+.btn-gr{background:var(--gr2);color:var(--gr);border:1px solid rgba(31,186,132,.25)}
+.btn-am{background:var(--am2);color:var(--am);border:1px solid rgba(240,166,35,.25)}
+.btn-rd{background:var(--rd2);color:var(--rd);border:1px solid rgba(240,83,83,.25)}
+.btn-pu{background:var(--pu2);color:var(--pu);border:1px solid rgba(155,127,244,.25)}
+.btn-tl{background:var(--tl2);color:var(--tl);border:1px solid rgba(34,180,214,.25)}
+
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.sc{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:13px 15px}
+.sl{font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.sv{font-size:22px;font-weight:900;line-height:1;margin-bottom:3px}
+.ss{font-size:10px;color:var(--tx2)}
+
+.card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:14px}
+.card-t{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+
+.bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
+.b-gr{background:var(--gr2);color:var(--gr)}.b-am{background:var(--am2);color:var(--am)}
+.b-rd{background:var(--rd2);color:var(--rd)}.b-tl{background:var(--tl2);color:var(--tl)}
+.b-pu{background:var(--pu2);color:var(--pu)}.b-gx{background:var(--bg4);color:var(--tx2)}
+.b-ac{background:rgba(79,124,255,.15);color:var(--ac)}
+
+.tw{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);overflow:hidden;margin-bottom:12px}
+.th-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--brd)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;padding:8px 12px;text-align:left;border-bottom:1px solid var(--brd);background:var(--bg3);overflow:hidden;white-space:nowrap}
+td{padding:9px 12px;font-size:12px;border-bottom:1px solid var(--brd);color:var(--tx);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+
+.pb{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-top:5px}
+.pf{height:100%;border-radius:3px;transition:width .3s}
+
+.fsel{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:5px 9px;font-size:11px;color:var(--tx2);cursor:pointer;outline:none}
+
+.mk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.mkc{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:14px;cursor:pointer;transition:all .15s}
+.mkc:hover,.mkc.on{border-color:var(--ac);background:var(--bg3)}
+.mk-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:9px}
+.mk-nm{font-size:12px;font-weight:700;margin-bottom:2px}
+.mk-cd{font-size:10px;color:var(--tx3);margin-bottom:9px}
+
+.ai-panel{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:16px}
+.ai-top{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--brd)}
+.ai-ico{width:40px;height:40px;border-radius:10px;background:var(--pu2);display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(155,127,244,.3)}
+.ai-title{font-size:14px;font-weight:800;color:var(--pu)}
+.ai-sub{font-size:11px;color:var(--tx3)}
+.ai-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.ai-field{display:flex;flex-direction:column;gap:4px}
+.ai-lbl{font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.ai-inp{background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r);padding:7px 10px;font-size:12px;color:var(--tx);outline:none;width:100%}
+.ai-inp:focus{border-color:var(--pu)}
+.ai-types{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.ai-type{padding:5px 10px;border-radius:6px;border:1px solid var(--brd);background:var(--bg3);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.ai-type.on{background:var(--pu2);color:var(--pu);border-color:rgba(155,127,244,.4)}
+.ai-result{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:12px;font-size:12px;color:var(--tx);line-height:1.6;min-height:80px}
+.ai-soal-item{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:12px;margin-bottom:8px}
+.ai-soal-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ai-soal-txt{font-size:12px;color:var(--tx);line-height:1.5;margin-bottom:8px}
+.ai-opts{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.ai-opt{font-size:11px;color:var(--tx2);padding:3px 7px;border-radius:4px;display:flex;gap:6px}
+.ai-opt.cor{background:var(--gr2);color:var(--gr)}
+.ai-img-box{background:var(--bg4);border:1px dashed var(--brd2);border-radius:var(--r);padding:12px;text-align:center;margin-bottom:8px;cursor:pointer}
+.ai-img-txt{font-size:11px;color:var(--tx3)}
+.kisi-row{display:grid;grid-template-columns:30px 1fr 80px 80px 70px;gap:8px;padding:6px 0;border-bottom:1px solid var(--brd);font-size:11px;align-items:center}
+.kisi-hdr{font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase}
+
+.hasil-mk-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.hmk-tab{padding:5px 12px;border-radius:20px;border:1px solid var(--brd);background:var(--bg3);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.hmk-tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+
+.dl-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
+.notif-wrap{position:absolute;top:60px;right:12px;z-index:50;display:flex;flex-direction:column;gap:6px;max-width:240px}
+.ntf{background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--rl);padding:10px 14px;font-size:12px;animation:slideN .2s ease;pointer-events:none}
+@keyframes slideN{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+
+.img-prev{width:100%;max-height:80px;object-fit:contain;border-radius:var(--r);background:var(--bg4);display:none}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(155,127,244,.3);border-top-color:var(--pu);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+
+<div class="shell" style="position:relative">
+<div class="notif-wrap" id="nwrap"></div>
+
+<div class="hdr">
+  <div class="hdr-logo"><div class="logo-sq">U</div>CBT-FKLT</div>
+  <div class="hdr-sep"></div>
+  <span class="hdr-sub">Fakultas Kehutanan &amp; Lingkungan Tropis — Unmul</span>
+  <div class="hdr-r">
+    <span class="live-dot">● Live</span>
+    <span style="font-size:11px;color:var(--tx2)">Dr. Admin Kehutanan</span>
+    <div class="ava">AK</div>
+  </div>
+</div>
+
+<div class="body">
+<div class="nav">
+  <button class="nb on" onclick="pg('home')" title="Dashboard">⊞</button>
+  <button class="nb" onclick="pg('mk')" title="Mata Kuliah">◉</button>
+  <button class="nb" onclick="pg('ai')" title="AI Buat Soal">✦</button>
+  <button class="nb" onclick="pg('hasil')" title="Hasil Ujian">≡</button>
+  <div class="ndiv"></div>
+  <button class="nb" onclick="pg('monitor')" title="Monitoring">⬡</button>
+</div>
+
+<div class="sb">
+  <div class="sb-hdr">
+    <div class="sb-title">Peserta Ujian</div>
+    <input class="sb-srch" type="text" placeholder="Cari nama / NIM..." oninput="cariPeserta(this.value)" id="cariInput">
+    <div class="sb-tabs">
+      <button class="st on" onclick="tabPeserta('semua',this)">Semua</button>
+      <button class="st" onclick="tabPeserta('online',this)">Online</button>
+      <button class="st" onclick="tabPeserta('selesai',this)">Selesai</button>
+    </div>
+  </div>
+  <div class="sb-scroll" id="sbList"></div>
+</div>
+
+<div class="main">
+
+<div class="page on" id="page-home">
+  <div class="ph">
+    <div><div class="pt">Dashboard Utama</div><div class="ps">Selasa, 5 Mei 2026 — UTS Semester Genap 2025/2026 — FKLT Unmul</div></div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-g" onclick="ntf('Link ujian disalin ke clipboard!','gr')">🔗 Bagikan Link</button>
+      <button class="btn btn-p" onclick="pg('ai')">✦ AI Buat Soal</button>
+    </div>
+  </div>
+
+  <div class="sg">
+    <div class="sc"><div class="sl">Total Peserta</div><div class="sv" style="color:var(--ac)">42</div><div class="ss">Terdaftar hari ini</div></div>
+    <div class="sc"><div class="sl">Sedang Ujian</div><div class="sv" style="color:var(--gr)">18</div><div class="ss">● Aktif online</div></div>
+    <div class="sc"><div class="sl">Sudah Submit</div><div class="sv" style="color:var(--am)">21</div><div class="ss">Selesai ujian</div></div>
+    <div class="sc"><div class="sl">Rata-rata Nilai</div><div class="sv" style="color:var(--pu)">78</div><div class="ss">Dari 100 poin</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+    <div class="card" style="padding-bottom:10px">
+      <div class="card-t">Distribusi Nilai per Mata Kuliah</div>
+      <div style="position:relative;height:180px"><canvas id="chartBar" role="img" aria-label="Grafik rata-rata nilai per mata kuliah">Rata-rata nilai: Ekologi Hutan 78, Silvika 82, Manajemen Hutan 71, Dendrologi 85, Ilmu Tanah 68, Hidrologi 75.</canvas></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:10px;color:var(--tx2)">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#4f7cff;display:inline-block"></span>Nilai rata-rata</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#1fba84;display:inline-block"></span>Target (75)</span>
+      </div>
+    </div>
+    <div class="card" style="padding-bottom:10px">
+      <div class="card-t">Distribusi Grade Mahasiswa</div>
+      <div style="position:relative;height:180px"><canvas id="chartDona" role="img" aria-label="Diagram donat distribusi grade mahasiswa">A: 8, B+: 6, B: 5, C+: 2, C: 1</canvas></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:10px;color:var(--tx2)">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#1fba84;display:inline-block"></span>A (8)</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#4f7cff;display:inline-block"></span>B+ (6)</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#9b7ff4;display:inline-block"></span>B (5)</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#f0a623;display:inline-block"></span>C+ (2)</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#f05353;display:inline-block"></span>C (1)</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+    <div class="card" style="padding-bottom:10px">
+      <div class="card-t">Progress Submit per Kelas <span class="bdg b-gr">Live</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="progList"></div>
+    </div>
+    <div class="card" style="padding-bottom:10px">
+      <div class="card-t">Aktivitas Realtime</div>
+      <div style="font-size:11px;line-height:1.7" id="actLog">
+        <div style="display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--brd)"><span style="color:var(--tx3);flex-shrink:0">10:42</span><span style="color:var(--gr)">✓ Rizky F. submit — Nilai: 85 (A)</span></div>
+        <div style="display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--brd)"><span style="color:var(--tx3);flex-shrink:0">10:41</span><span style="color:var(--am)">⚠ Andi S. pindah tab terdeteksi</span></div>
+        <div style="display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--brd)"><span style="color:var(--tx3);flex-shrink:0">10:40</span><span style="color:var(--gr)">✓ Siti R. submit — Nilai: 92 (A)</span></div>
+        <div style="display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--brd)"><span style="color:var(--tx3);flex-shrink:0">10:38</span><span style="color:var(--am)">⚠ Budi W. keluar fullscreen</span></div>
+        <div style="display:flex;gap:8px;padding:3px 0"><span style="color:var(--tx3);flex-shrink:0">10:35</span><span style="color:var(--gr)">✓ Maya K. bergabung ujian</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+    <div class="card">
+      <div class="card-t">Jadwal Ujian <span class="bdg b-am">UTS & UAS</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px" id="jadwalList"></div>
+    </div>
+    <div class="card">
+      <div class="card-t">Statistik Kecurangan</div>
+      <div style="position:relative;height:140px"><canvas id="chartLine" role="img" aria-label="Grafik deteksi kecurangan">Deteksi pelanggaran per jam.</canvas></div>
+    </div>
+  </div>
+
+  <div class="tw">
+    <div class="th-row">
+      <span style="font-size:12px;font-weight:700">Rekap Nilai Terbaru</span>
+      <div style="display:flex;gap:6px">
+        <select class="fsel" id="filterMkDash" onchange="renderDashTable()"><option value="">Semua MK</option><option>Ekologi Hutan</option><option>Silvika</option><option>Manajemen Hutan</option></select>
+        <button class="btn btn-g" style="font-size:11px;padding:4px 9px" onclick="ntf('Mengekspor data ke Excel...','tl')">↓ Export</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th style="width:140px">Nama</th><th style="width:90px">NIM</th><th style="width:60px">Kelas</th><th style="width:110px">Mata Kuliah</th><th style="width:50px">Nilai</th><th style="width:45px">Grade</th><th style="width:70px">Status</th></tr></thead>
+      <tbody id="dashTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="page" id="page-mk">
+  <div class="ph">
+    <div><div class="pt">Mata Kuliah</div><div class="ps">Kelola ujian UTS/UAS per mata kuliah</div></div>
+    <button class="btn btn-p" onclick="ntf('Form tambah mata kuliah dibuka','ac')">+ Tambah MK</button>
+  </div>
+  <div class="mk-grid" id="mkGrid"></div>
+  <div class="card" id="mkDetail">
+    <div class="card-t"><span id="mkDetailNm" style="color:var(--ac)">Pilih mata kuliah di atas</span></div>
+    <div id="mkDetailBody"><div style="text-align:center;padding:24px;color:var(--tx3);font-size:12px">Klik kartu mata kuliah untuk melihat detail peserta dan soal</div></div>
+  </div>
+</div>
+
+<div class="page" id="page-ai">
+  <div class="ph">
+    <div><div class="pt">AI Generate Soal</div><div class="ps">Buat soal otomatis dengan bantuan AI + kisi-kisi</div></div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-g" onclick="ntf('Upload Word/PDF untuk generate soal','tl')">↑ Upload Materi</button>
+      <button class="btn btn-pu" onclick="generateAI()">✦ Generate AI</button>
+    </div>
+  </div>
+
+  <div class="ai-panel" style="margin-bottom:12px">
+    <div class="ai-top">
+      <div class="ai-ico">✦</div>
+      <div><div class="ai-title">AI Pembuat Soal — FKLT Unmul</div><div class="ai-sub">Generate soal otomatis, kisi-kisi, gambar pendukung, dan kunci jawaban</div></div>
+    </div>
+
+    <div class="ai-form">
+      <div class="ai-field"><div class="ai-lbl">Mata Kuliah</div>
+        <select class="ai-inp" id="aiMk"><option>Ekologi Hutan</option><option>Silvika</option><option>Manajemen Hutan</option><option>Dendrologi</option><option>Ilmu Tanah Hutan</option><option>Hidrologi Hutan</option></select>
+      </div>
+      <div class="ai-field"><div class="ai-lbl">Topik</div><input class="ai-inp" id="aiTopik" value="Suksesi ekologi dan keanekaragaman hayati" placeholder="Masukkan topik..."></div>
+      <div class="ai-field"><div class="ai-lbl">Tingkat Kesulitan</div>
+        <select class="ai-inp" id="aiLevel"><option>Mudah (C1-C2)</option><option>Sedang (C3-C4)</option><option selected>Sulit/HOTS (C5-C6)</option></select>
+      </div>
+      <div class="ai-field"><div class="ai-lbl">Jumlah Soal</div><input class="ai-inp" id="aiJml" type="number" value="3" min="1" max="20"></div>
+      <div class="ai-field"><div class="ai-lbl">Tipe Ujian</div>
+        <select class="ai-inp" id="aiTipeUjian"><option>UTS</option><option>UAS</option></select>
+      </div>
+      <div class="ai-field"><div class="ai-lbl">Semester</div>
+        <select class="ai-inp" id="aiSmt"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+      </div>
+    </div>
+
+    <div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Tipe Soal</div>
+    <div class="ai-types">
+      <div class="ai-type on" onclick="toggleType(this)">Pilihan Ganda</div>
+      <div class="ai-type on" onclick="toggleType(this)">Essay</div>
+      <div class="ai-type on" onclick="toggleType(this)">Benar / Salah</div>
+      <div class="ai-type" onclick="toggleType(this)">Isian Singkat</div>
+      <div class="ai-type on" onclick="toggleType(this)">Soal Bergambar</div>
+      <div class="ai-type on" onclick="toggleType(this)">HOTS Analisis</div>
+    </div>
+
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <div style="flex:1">
+        <div class="ai-lbl" style="margin-bottom:4px">Tambah Gambar Pendukung (opsional)</div>
+        <div class="ai-img-box" onclick="ntf('Browser file gambar dibuka','ac')">
+          <div class="ai-img-txt">+ Klik untuk upload gambar soal (JPG/PNG/SVG)</div>
+          <img class="img-prev" id="imgPrev" src="">
+        </div>
+      </div>
+      <div style="flex:1">
+        <div class="ai-lbl" style="margin-bottom:4px">Bobot Nilai</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div class="ai-field"><div class="ai-lbl">PG (%)</div><input class="ai-inp" type="number" value="60" min="0" max="100"></div>
+          <div class="ai-field"><div class="ai-lbl">Essay (%)</div><input class="ai-inp" type="number" value="40" min="0" max="100"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-pu" style="width:100%;justify-content:center;padding:9px" onclick="generateAI()">✦ Generate Soal + Kisi-kisi sekarang</button>
+  </div>
+
+  <div id="aiOutput" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span style="font-size:13px;font-weight:700">Hasil Generate AI</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-g" onclick="ntf('Soal ditambahkan ke Bank Soal!','gr')">+ Simpan ke Bank</button>
+        <button class="btn btn-am" onclick="showKisi()">Lihat Kisi-kisi</button>
+        <button class="btn btn-tl" onclick="ntf('Mengunduh PDF soal...','tl')">↓ PDF</button>
+        <button class="btn btn-gr" onclick="ntf('Mengunduh Word soal...','gr')">↓ Word</button>
+      </div>
+    </div>
+    <div id="soalGenerasi"></div>
+
+    <div id="kisiPanel" style="display:none;margin-top:12px">
+      <div class="card">
+        <div class="card-t">Kisi-kisi Soal — <span id="kisiMkTitle" style="color:var(--ac)">Ekologi Hutan</span> <span class="bdg b-am">UTS</span></div>
+        <div class="kisi-row kisi-hdr"><span>#</span><span>Indikator / Kompetensi</span><span>Tipe Soal</span><span>Tingkat</span><span>No Soal</span></div>
+        <div id="kisiBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-hasil">
+  <div class="ph">
+    <div><div class="pt">Hasil Ujian</div><div class="ps">Daftar nilai per mata kuliah — edit, hapus, dan unduh</div></div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-g" onclick="ntf('Membuka cetak nilai format kementerian...','ac')">🖨️ Cetak</button>
+      <button class="btn btn-gr" onclick="ntf('Export ke Google Spreadsheet berhasil!','gr')">↑ Spreadsheet</button>
+    </div>
+  </div>
+
+  <div class="hasil-mk-tabs" id="hasilTabs"></div>
+
+  <div class="sg" style="margin-bottom:12px" id="hasilStats"></div>
+
+  <div class="tw">
+    <div class="th-row">
+      <span style="font-size:12px;font-weight:700" id="hasilTableTitle">Nilai Ujian</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <select class="fsel" onchange="renderHasilTable()"><option>Urutkan: Nilai ↓</option><option>Nilai ↑</option><option>Nama A-Z</option></select>
+        <button class="btn btn-tl" style="font-size:11px;padding:4px 9px" onclick="ntf('Mengunduh Excel...','tl')">↓ Excel</button>
+        <button class="btn btn-rd" style="font-size:11px;padding:4px 9px" onclick="ntf('Mengunduh PDF...','rd')">↓ PDF</button>
+        <button class="btn btn-gr" style="font-size:11px;padding:4px 9px" onclick="ntf('Mengunduh Word...','gr')">↓ Word</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th style="width:30px">#</th><th style="width:140px">Nama</th><th style="width:90px">NIM</th><th style="width:55px">Kelas</th><th style="width:40px">Benar</th><th style="width:40px">Salah</th><th style="width:45px">Nilai</th><th style="width:40px">Grade</th><th style="width:80px">Submit</th><th style="width:90px">Aksi</th></tr></thead>
+      <tbody id="hasilTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="page" id="page-monitor">
+  <div class="ph">
+    <div><div class="pt">Monitoring Realtime</div><div class="ps">Pantau peserta ujian secara langsung</div></div>
+    <span class="live-dot" style="font-size:12px;padding:6px 12px">● 18 Peserta Online</span>
+  </div>
+  <div class="sg" style="margin-bottom:12px">
+    <div class="sc"><div class="sl">Peringatan</div><div class="sv" style="color:var(--am)">3</div><div class="ss">Tab / fullscreen</div></div>
+    <div class="sc"><div class="sl">Auto Submit</div><div class="sv" style="color:var(--rd)">1</div><div class="ss">Waktu habis</div></div>
+    <div class="sc"><div class="sl">Avg Progress</div><div class="sv" style="color:var(--gr)">68%</div><div class="ss">Soal dijawab</div></div>
+    <div class="sc"><div class="sl">Sisa Waktu</div><div class="sv" style="color:var(--tl)">48:12</div><div class="ss">Ujian berakhir</div></div>
+  </div>
+  <div class="tw">
+    <div class="th-row"><span style="font-size:12px;font-weight:700">Status Peserta Realtime</span><span class="live-dot">Live</span></div>
+    <table>
+      <thead><tr><th style="width:140px">Nama</th><th style="width:90px">NIM</th><th style="width:110px">Progress</th><th style="width:80px">Sisa Waktu</th><th style="width:80px">Peringatan</th><th style="width:70px">Status</th></tr></thead>
+      <tbody id="monTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const AC=['#4f7cff','#1fba84','#f0a623','#f05353','#9b7ff4','#22b4d6'];
+const gc=i=>AC[i%AC.length];
+
+const peserta=[
+  {id:1,nm:'Ahmad Rizky F.',nim:'2301101001',kls:'MNH-A',mk:'Ekologi Hutan',nilai:85,benar:34,salah:6,st:'selesai',warn:0,sub:'10:30'},
+  {id:2,nm:'Siti Rahmawati',nim:'2301101002',kls:'MNH-A',mk:'Ekologi Hutan',nilai:92,benar:37,salah:3,st:'selesai',warn:0,sub:'10:32'},
+  {id:3,nm:'Budi Wicaksono',nim:'2301101003',kls:'MNH-A',mk:'Ekologi Hutan',nilai:null,benar:null,salah:null,st:'online',warn:2,sub:''},
+  {id:4,nm:'Maya Kusuma',nim:'2301101004',kls:'MNH-A',mk:'Ekologi Hutan',nilai:null,benar:null,salah:null,st:'online',warn:0,sub:''},
+  {id:5,nm:'Dani Pratama',nim:'2301101005',kls:'MNH-A',mk:'Ekologi Hutan',nilai:null,benar:null,salah:null,st:'online',warn:1,sub:''},
+  {id:6,nm:'Rina Safitri',nim:'2301101006',kls:'MNH-A',mk:'Ekologi Hutan',nilai:78,benar:31,salah:9,st:'selesai',warn:0,sub:'10:41'},
+  {id:7,nm:'Hendra Saputra',nim:'2301101007',kls:'MNH-B',mk:'Silvika',nilai:88,benar:35,salah:5,st:'selesai',warn:0,sub:'10:28'},
+  {id:8,nm:'Lestari Dewi',nim:'2301101008',kls:'MNH-B',mk:'Silvika',nilai:null,benar:null,salah:null,st:'online',warn:0,sub:''},
+  {id:9,nm:'Fauzan Akbar',nim:'2301101009',kls:'MNH-B',mk:'Silvika',nilai:65,benar:26,salah:14,st:'selesai',warn:0,sub:'10:45'},
+  {id:10,nm:'Yuliana Sari',nim:'2301101010',kls:'MNH-B',mk:'Silvika',nilai:null,benar:null,salah:null,st:'online',warn:0,sub:''},
+  {id:11,nm:'Irwan Maulana',nim:'2301101011',kls:'LH-A',mk:'Manajemen Hutan',nilai:72,benar:29,salah:11,st:'selesai',warn:1,sub:'10:38'},
+  {id:12,nm:'Dewi Astuti',nim:'2301101012',kls:'LH-A',mk:'Manajemen Hutan',nilai:null,benar:null,salah:null,st:'offline',warn:0,sub:''},
+  {id:13,nm:'Reza Firmansyah',nim:'2301101013',kls:'LH-A',mk:'Manajemen Hutan',nilai:76,benar:30,salah:10,st:'selesai',warn:0,sub:'10:42'},
+  {id:14,nm:'Annisa Putri',nim:'2301101014',kls:'MNH-A',mk:'Ekologi Hutan',nilai:95,benar:38,salah:2,st:'selesai',warn:0,sub:'10:35'},
+];
+
+const matakuliah=[
+  {id:1,nm:'Ekologi Hutan',kd:'MNH301',ico:'🌿',st:'aktif',tipe:'UTS',soal:40,smt:5},
+  {id:2,nm:'Silvika',kd:'MNH302',ico:'🌲',st:'aktif',tipe:'UTS',soal:35,smt:5},
+  {id:3,nm:'Manajemen Hutan',kd:'MNH303',ico:'🗂️',st:'belum',tipe:'UTS',soal:45,smt:3},
+  {id:4,nm:'Dendrologi',kd:'MNH201',ico:'🌳',st:'belum',tipe:'UAS',soal:30,smt:3},
+  {id:5,nm:'Ilmu Tanah Hutan',kd:'LH201',ico:'🪨',st:'belum',tipe:'UAS',soal:25,smt:5},
+  {id:6,nm:'Hidrologi Hutan',kd:'LH301',ico:'💧',st:'belum',tipe:'UTS',soal:20,smt:7},
+];
+
+const jadwal=[
+  {mk:'Ekologi Hutan',tgl:'05/05/2026',jam:'09:00-10:30',tipe:'UTS',kls:'MNH-A',st:'berlangsung'},
+  {mk:'Silvika',tgl:'05/05/2026',jam:'11:00-12:30',tipe:'UTS',kls:'MNH-B',st:'berlangsung'},
+  {mk:'Manajemen Hutan',tgl:'07/05/2026',jam:'09:00-10:30',tipe:'UTS',kls:'LH-A',st:'mendatang'},
+  {mk:'Dendrologi',tgl:'09/05/2026',jam:'13:00-14:30',tipe:'UAS',kls:'MNH-A',st:'mendatang'},
+];
+
+const soalTemplate=[
+  {no:1,teks:'Ekosistem hutan tropis basah dicirikan oleh curah hujan tahunan di atas 2.500 mm. Berdasarkan konsep suksesi ekologi, jelaskan tahapan yang terjadi setelah penebangan hutan tropis!',tipe:'HOTS Analisis',level:'Sulit',jwb:'Suksesi sekunder dimulai dari vegetasi pionir (gulma, perdu) → semak belukar → pohon-pohon awal → pemulihan kanopi → hutan klimaks dalam 100-200 tahun tergantung intensitas gangguan.',opsi:null,gambar:false},
+  {no:2,teks:'Perhatikan diagram berikut! Organisme manakah yang berperan sebagai dekomposer utama dalam rantai makanan hutan hujan tropis Kalimantan?',tipe:'Pilihan Ganda',level:'Sedang',jwb:1,opsi:['Orangutan (Pongo pygmaeus)','Jamur, bakteri saprofit, cacing tanah','Pohon Dipterocarp','Harimau Dahan'],gambar:true},
+  {no:3,teks:'Keanekaragaman hayati di hutan Kalimantan termasuk kategori?',tipe:'Benar / Salah',level:'Mudah',jwb:0,opsi:['Benar — Kalimantan adalah hotspot biodiversitas dunia','Salah — Kalimantan bukan hotspot biodiversitas'],gambar:false},
+];
+
+const kisiTemplate=[
+  {ind:'Menjelaskan konsep suksesi ekologi dan tahapannya',tipe:'HOTS Analisis',lvl:'C5 Evaluasi',no:'1'},
+  {ind:'Mengidentifikasi peran organisme dalam rantai makanan',tipe:'Pilihan Ganda',lvl:'C3 Aplikasi',no:'2'},
+  {ind:'Mengetahui status biodiversitas Kalimantan',tipe:'Benar/Salah',lvl:'C1 Ingatan',no:'3'},
+];
+
+let selTab='semua', selPeserta=null, cariVal='', selMkHasil='Ekologi Hutan', chartsInit=false;
+
+function grade(v){
+  if(!v) return '-';
+  if(v>=85) return 'A'; if(v>=75) return 'B+'; if(v>=65) return 'B';
+  if(v>=55) return 'C+'; if(v>=45) return 'C'; return 'D';
+}
+function grCls(v){
+  if(!v) return 'b-gx';
+  if(v>=85) return 'b-gr'; if(v>=65) return 'b-ac'; if(v>=45) return 'b-am'; return 'b-rd';
+}
+function inits(nm){return nm.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}
+
+function renderSB(){
+  const list=document.getElementById('sbList');
+  let data=peserta.filter(p=>{
+    const ms=!cariVal||p.nm.toLowerCase().includes(cariVal.toLowerCase())||p.nim.includes(cariVal);
+    const mt=selTab==='semua'||p.st===selTab;
+    return ms&&mt;
+  });
+  const grp={};
+  data.forEach(p=>{if(!grp[p.kls])grp[p.kls]=[];grp[p.kls].push(p)});
+  let h='';
+  Object.keys(grp).sort().forEach(kls=>{
+    h+=`<div class="sec-lbl">${kls}</div>`;
+    grp[kls].forEach((p,i)=>{
+      const col=gc(p.id);
+      const dc=p.st==='online'?'d-on':p.st==='selesai'?'d-done':p.st==='warning'?'d-warn':'d-off';
+      h+=`<div class="pi ${selPeserta?.id===p.id?'sel':''}" onclick="selP(${p.id})">
+        <div class="pi-av" style="background:${col}22;color:${col}">${inits(p.nm)}</div>
+        <div class="pi-info"><div class="pi-nm">${p.nm}</div><div class="pi-nim">${p.nim} • ${p.nilai!==null?'Nilai: '+p.nilai:p.st==='online'?'Sedang ujian':'Belum hadir'}</div></div>
+        <div class="pi-dot ${dc}"></div>
+      </div>`;
+    });
+  });
+  list.innerHTML=h||'<div style="text-align:center;padding:20px;color:var(--tx3);font-size:12px">Tidak ditemukan</div>';
+}
+function selP(id){selPeserta=peserta.find(p=>p.id===id);renderSB()}
+function tabPeserta(t,btn){selTab=t;document.querySelectorAll('.st').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderSB()}
+function cariPeserta(v){cariVal=v;renderSB()}
+
+function renderDashTable(){
+  const mk=document.getElementById('filterMkDash').value;
+  const data=(mk?peserta.filter(p=>p.mk===mk):peserta).filter(p=>p.nilai!==null);
+  const tbody=document.getElementById('dashTbody');
+  tbody.innerHTML=data.map(p=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:6px">
+      <div style="width:24px;height:24px;border-radius:50%;background:${gc(p.id)}22;color:${gc(p.id)};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">${inits(p.nm)}</div>${p.nm}
+    </div></td>
+    <td style="color:var(--tx3)">${p.nim}</td>
+    <td><span class="bdg b-pu">${p.kls}</span></td>
+    <td style="color:var(--tx2)">${p.mk}</td>
+    <td style="font-weight:800;color:${p.nilai>=75?'var(--gr)':p.nilai>=55?'var(--am)':'var(--rd)'}">${p.nilai}</td>
+    <td><span class="bdg ${grCls(p.nilai)}">${grade(p.nilai)}</span></td>
+    <td><span class="bdg b-gr">Selesai</span></td>
+  </tr>`).join('');
+}
+
+function renderProg(){
+  const klsList=['MNH-A','MNH-B','LH-A'];
+  const el=document.getElementById('progList');
+  el.innerHTML=klsList.map(kls=>{
+    const tot=peserta.filter(p=>p.kls===kls).length;
+    const done=peserta.filter(p=>p.kls===kls&&p.nilai!==null).length;
+    const pct=tot?Math.round((done/tot)*100):0;
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+        <span style="color:var(--tx)">${kls}</span>
+        <span style="color:var(--tx2)">${done}/${tot} (${pct}%)</span>
+      </div>
+      <div class="pb"><div class="pf" style="width:${pct}%;background:${pct>=80?'var(--gr)':pct>=50?'var(--ac)':'var(--am)'}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderJadwal(){
+  const el=document.getElementById('jadwalList');
+  el.innerHTML=jadwal.map(j=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--tx)">${j.mk}</div>
+      <div style="font-size:10px;color:var(--tx3)">${j.tgl} • ${j.jam} • ${j.kls}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px">
+      <span class="bdg ${j.tipe==='UAS'?'b-pu':'b-am'}">${j.tipe}</span>
+      <span class="bdg ${j.st==='berlangsung'?'b-gr':'b-gx'}">${j.st==='berlangsung'?'● Live':'Mendatang'}</span>
+    </div>
+  </div>`).join('');
+}
+
+function renderMK(){
+  const grid=document.getElementById('mkGrid');
+  grid.innerHTML=matakuliah.map((mk,i)=>`<div class="mkc" onclick="selMK(${mk.id})">
+    <div class="mk-ico" style="background:${gc(i)}22">${mk.ico}</div>
+    <div class="mk-nm" style="color:var(--tx)">${mk.nm}</div>
+    <div class="mk-cd">${mk.kd} • Smt ${mk.smt}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;color:var(--tx2)">👥 ${peserta.filter(p=>p.mk===mk.nm).length} • 📝 ${mk.soal} soal</span>
+      <span class="bdg ${mk.st==='aktif'?'b-gr':mk.tipe==='UAS'?'b-pu':'b-am'}">${mk.st==='aktif'?'● Aktif':mk.tipe}</span>
+    </div>
+  </div>`).join('');
+}
+
+function selMK(id){
+  const mk=matakuliah.find(m=>m.id===id);
+  document.querySelectorAll('.mkc').forEach((c,i)=>c.classList.toggle('on',matakuliah[i].id===id));
+  document.getElementById('mkDetailNm').textContent=mk.nm;
+  const data=peserta.filter(p=>p.mk===mk.nm);
+  if(!data.length){document.getElementById('mkDetailBody').innerHTML='<div style="text-align:center;padding:20px;color:var(--tx3);font-size:12px">Belum ada peserta terdaftar</div>';return}
+  document.getElementById('mkDetailBody').innerHTML=`<table style="width:100%">
+    <thead><tr><th style="width:140px">Nama</th><th style="width:90px">NIM</th><th style="width:60px">Kelas</th><th style="width:50px">Nilai</th><th style="width:45px">Grade</th><th style="width:70px">Status</th><th style="width:100px">Aksi</th></tr></thead>
+    <tbody>${data.map(p=>`<tr>
+      <td>${p.nm}</td><td style="color:var(--tx3)">${p.nim}</td><td><span class="bdg b-pu">${p.kls}</span></td>
+      <td style="font-weight:800;color:${p.nilai>=75?'var(--gr)':p.nilai>=55?'var(--am)':p.nilai?'var(--rd)':'var(--tx3)'}">${p.nilai||'—'}</td>
+      <td><span class="bdg ${grCls(p.nilai)}">${grade(p.nilai)}</span></td>
+      <td><span class="bdg ${p.st==='selesai'?'b-gr':p.st==='online'?'b-tl':'b-gx'}">${p.st}</span></td>
+      <td><button class="btn btn-g" style="font-size:10px;padding:3px 7px" onclick="ntf('Edit data ${p.nm}','ac')">Edit</button> <button class="btn btn-rd" style="font-size:10px;padding:3px 7px" onclick="ntf('Data dihapus','rd')">Hapus</button></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderHasilTabs(){
+  const mks=[...new Set(peserta.filter(p=>p.nilai).map(p=>p.mk))];
+  const tabs=document.getElementById('hasilTabs');
+  tabs.innerHTML=mks.map(m=>`<button class="hmk-tab ${m===selMkHasil?'on':''}" onclick="selHasilMK('${m}',this)">${m}</button>`).join('');
+}
+function selHasilMK(m,btn){
+  selMkHasil=m;
+  document.querySelectorAll('.hmk-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderHasilTable();renderHasilStats();
+}
+function renderHasilStats(){
+  const data=peserta.filter(p=>p.mk===selMkHasil&&p.nilai!==null);
+  const avg=data.length?Math.round(data.reduce((s,p)=>s+p.nilai,0)/data.length):0;
+  const mx=data.length?Math.max(...data.map(p=>p.nilai)):0;
+  const mn=data.length?Math.min(...data.map(p=>p.nilai)):0;
+  const el=document.getElementById('hasilStats');
+  el.innerHTML=`
+    <div class="sc"><div class="sl">Peserta Submit</div><div class="sv" style="color:var(--ac)">${data.length}</div><div class="ss">${selMkHasil}</div></div>
+    <div class="sc"><div class="sl">Rata-rata</div><div class="sv" style="color:var(--gr)">${avg}</div><div class="ss">Nilai rata-rata</div></div>
+    <div class="sc"><div class="sl">Tertinggi</div><div class="sv" style="color:var(--pu)">${mx}</div><div class="ss">Nilai maksimal</div></div>
+    <div class="sc"><div class="sl">Terendah</div><div class="sv" style="color:var(--am)">${mn}</div><div class="ss">Nilai minimal</div></div>`;
+}
+function renderHasilTable(){
+  const data=peserta.filter(p=>p.mk===selMkHasil&&p.nilai!==null).sort((a,b)=>b.nilai-a.nilai);
+  document.getElementById('hasilTableTitle').textContent=`Nilai Ujian — ${selMkHasil}`;
+  const tbody=document.getElementById('hasilTbody');
+  tbody.innerHTML=data.map((p,i)=>`<tr>
+    <td style="color:var(--tx3);font-weight:700">${i+1}</td>
+    <td>${p.nm}</td><td style="color:var(--tx3)">${p.nim}</td>
+    <td><span class="bdg b-pu">${p.kls}</span></td>
+    <td style="color:var(--gr);font-weight:700">${p.benar}</td>
+    <td style="color:var(--rd)">${p.salah}</td>
+    <td style="font-size:15px;font-weight:900;color:${p.nilai>=75?'var(--gr)':p.nilai>=55?'var(--am)':'var(--rd)'}">${p.nilai}</td>
+    <td><span class="bdg ${grCls(p.nilai)}">${grade(p.nilai)}</span></td>
+    <td style="color:var(--tx3)">${p.sub||'—'}</td>
+    <td>
+      <button class="btn btn-g" style="font-size:10px;padding:3px 6px" onclick="ntf('Edit nilai ${p.nm}','ac')">Edit</button>
+      <button class="btn btn-rd" style="font-size:10px;padding:3px 6px" onclick="ntf('Data dihapus','rd')">Hapus</button>
+    </td>
+  </tr>`).join('');
+}
+
+function renderMonitor(){
+  const online=peserta.filter(p=>p.st==='online'||p.st==='selesai');
+  const prg=[72,45,88,31,67,53,92,24];
+  const tbody=document.getElementById('monTbody');
+  tbody.innerHTML=online.map((p,i)=>`<tr>
+    <td>${p.nm}</td><td style="color:var(--tx3)">${p.nim}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="pb" style="width:70px;height:5px;flex-shrink:0"><div class="pf" style="width:${p.st==='selesai'?100:prg[i%8]}%;background:${p.st==='selesai'?'var(--tl)':'var(--ac)'}"></div></div>
+        <span style="font-size:11px;color:var(--tx2)">${p.st==='selesai'?'100':prg[i%8]}%</span>
+      </div>
+    </td>
+    <td style="color:${p.st==='selesai'?'var(--tx3)':'var(--am)'};font-size:12px">${p.st==='selesai'?'—':'48:'+String(Math.max(0,12-i*3)).padStart(2,'0')}</td>
+    <td>${p.warn>0?`<span class="bdg b-am">⚠ ${p.warn}x</span>`:`<span class="bdg b-gr">Aman</span>`}</td>
+    <td><span class="bdg ${p.st==='selesai'?'b-tl':p.st==='online'?'b-gr':'b-gx'}">${p.st}</span></td>
+  </tr>`).join('');
+}
+
+function toggleType(el){el.classList.toggle('on')}
+
+let aiLoading=false;
+function generateAI(){
+  if(aiLoading) return;
+  aiLoading=true;
+  const mk=document.getElementById('aiMk').value;
+  const topik=document.getElementById('aiTopik').value;
+  const level=document.getElementById('aiLevel').value;
+  const jml=parseInt(document.getElementById('aiJml').value)||3;
+  document.getElementById('aiOutput').style.display='none';
+  const btn=document.querySelector('[onclick="generateAI()"]');
+  btn.innerHTML='<span class="spin"></span> Generating...';
+  setTimeout(()=>{
+    aiLoading=false;
+    btn.innerHTML='✦ Generate Soal + Kisi-kisi sekarang';
+    document.getElementById('kisiMkTitle').textContent=mk;
+    renderAISoal(jml,mk,topik,level);
+    renderKisi(jml,mk);
+    document.getElementById('aiOutput').style.display='block';
+    document.getElementById('kisiPanel').style.display='none';
+    ntf('✓ '+jml+' soal berhasil digenerate!','gr');
+  },1800);
+}
+
+function renderAISoal(jml,mk,topik,level){
+  const el=document.getElementById('soalGenerasi');
+  const items=soalTemplate.slice(0,Math.min(jml,3));
+  el.innerHTML=items.map((s,i)=>`<div class="ai-soal-item">
+    <div class="ai-soal-hdr">
+      <span style="font-size:10px;font-weight:700;color:var(--tx3)">Soal ${i+1}</span>
+      <span class="bdg ${s.tipe==='Pilihan Ganda'?'b-tl':s.tipe==='HOTS Analisis'?'b-rd':s.tipe==='Benar / Salah'?'b-am':'b-pu'}">${s.tipe}</span>
+      <span class="bdg ${s.level==='Mudah'?'b-gr':s.level==='Sedang'?'b-am':'b-rd'}">${s.level}</span>
+      <span class="bdg b-gx">${mk}</span>
+    </div>
+    ${s.gambar?`<div class="ai-img-box" style="margin-bottom:8px;padding:8px">
+      <div class="ai-img-txt" style="font-size:10px">📷 Gambar: Diagram rantai makanan hutan hujan tropis Kalimantan</div>
+      <div style="background:var(--bg3);height:50px;border-radius:var(--r);margin-top:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--tx3)">[Ilustrasi rantai makanan — klik untuk upload gambar nyata]</div>
+    </div>`:''}
+    <div class="ai-soal-txt">${s.teks}</div>
+    ${s.opsi?`<div class="ai-opts">${s.opsi.map((o,j)=>`<div class="ai-opt ${j===s.jwb?'cor':''}"><strong>${String.fromCharCode(65+j)}.</strong> ${o} ${j===s.jwb?'✓ (Kunci)':''}</div>`).join('')}</div>`:''}
+    ${!s.opsi?`<div style="background:var(--bg3);border-radius:var(--r);padding:8px;font-size:11px;color:var(--tx3)"><strong style="color:var(--gr)">Jawaban:</strong><br>${s.jwb}</div>`:''}
+    <div style="display:flex;gap:5px;margin-top:8px">
+      <button class="btn btn-g" style="font-size:10px;padding:3px 7px" onclick="ntf('Edit soal '+(${i}+1),'ac')">Edit</button>
+      <button class="btn btn-am" style="font-size:10px;padding:3px 7px" onclick="ntf('Rewrite soal dengan AI...','pu')">✦ Rewrite AI</button>
+      <button class="btn btn-g" style="font-size:10px;padding:3px 7px" onclick="ntf('Upload gambar soal '+(${i}+1),'tl')">+ Gambar</button>
+      <button class="btn btn-rd" style="font-size:10px;padding:3px 7px" onclick="ntf('Soal dihapus','rd')">Hapus</button>
+    </div>
+  </div>`).join('');
+}
+
+function renderKisi(jml,mk){
+  const el=document.getElementById('kisiBody');
+  el.innerHTML=kisiTemplate.slice(0,Math.min(jml,3)).map((k,i)=>`<div class="kisi-row">
+    <span style="color:var(--tx3);font-weight:700">${i+1}</span>
+    <span style="color:var(--tx);font-size:11px">${k.ind}</span>
+    <span class="bdg b-tl" style="font-size:9px">${k.tipe}</span>
+    <span class="bdg b-am" style="font-size:9px">${k.lvl}</span>
+    <span style="color:var(--tx3)">${k.no}</span>
+  </div>`).join('');
+}
+
+function showKisi(){
+  const panel=document.getElementById('kisiPanel');
+  panel.style.display=panel.style.display==='none'?'block':'none';
+}
+
+function pg(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  const navMap={home:0,mk:1,ai:2,hasil:3,monitor:4};
+  const btns=document.querySelectorAll('.nb');
+  if(navMap[id]!==undefined) btns[navMap[id]].classList.add('on');
+  if(id==='home'&&!chartsInit){initCharts();chartsInit=true}
+  if(id==='home'){initCharts()}
+}
+
+function initCharts(){
+  try{
+    const barCtx=document.getElementById('chartBar');
+    if(barCtx._chart) barCtx._chart.destroy();
+    barCtx._chart=new Chart(barCtx,{
+      type:'bar',
+      data:{
+        labels:['Ekologi Htn','Silvika','Manj Hutan','Dendrologi','Ilmu Tanah','Hidrologi'],
+        datasets:[
+          {label:'Nilai rata-rata',data:[78,82,71,85,68,75],backgroundColor:'rgba(79,124,255,0.7)',borderColor:'#4f7cff',borderWidth:1,borderRadius:4},
+          {label:'Target (75)',data:[75,75,75,75,75,75],type:'line',borderColor:'#1fba84',borderWidth:2,borderDash:[5,4],pointRadius:0,fill:false}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#4e5870',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},autoSkip:false,maxRotation:45},
+        y:{ticks:{color:'#4e5870',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},min:50,max:100}
+      }}
+    });
+
+    const donaCtx=document.getElementById('chartDona');
+    if(donaCtx._chart) donaCtx._chart.destroy();
+    donaCtx._chart=new Chart(donaCtx,{
+      type:'doughnut',
+      data:{
+        labels:['A','B+','B','C+','C'],
+        datasets:[{data:[8,6,5,2,1],backgroundColor:['#1fba84','#4f7cff','#9b7ff4','#f0a623','#f05353'],borderWidth:0,hoverOffset:4}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}
+    });
+
+    const lineCtx=document.getElementById('chartLine');
+    if(lineCtx._chart) lineCtx._chart.destroy();
+    lineCtx._chart=new Chart(lineCtx,{
+      type:'line',
+      data:{
+        labels:['09:00','09:30','10:00','10:30','11:00','11:30'],
+        datasets:[{label:'Pelanggaran',data:[0,1,2,3,1,0],borderColor:'#f0a623',backgroundColor:'rgba(240,166,35,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f0a623',tension:.4,fill:true}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#4e5870',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#4e5870',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},min:0,max:5,ticks:{stepSize:1}}
+      }}
+    });
+  }catch(e){}
+}
+
+function ntf(msg,type){
+  const wrap=document.getElementById('nwrap');
+  const colors={gr:'var(--gr)',ac:'var(--ac)',am:'var(--am)',rd:'var(--rd)',tl:'var(--tl)',pu:'var(--pu)'};
+  const d=document.createElement('div');
+  d.className='ntf';
+  d.style.borderLeft=`3px solid ${colors[type]||'var(--brd2)'}`;
+  d.style.color=colors[type]||'var(--tx)';
+  d.textContent=msg;
+  wrap.appendChild(d);
+  setTimeout(()=>{d.style.opacity='0';d.style.transform='translateX(8px)';d.style.transition='all .3s';setTimeout(()=>d.remove(),300)},2800);
+}
+
+renderSB(); renderDashTable(); renderProg(); renderJadwal(); renderMK();
+renderHasilTabs(); renderHasilStats(); renderHasilTable(); renderMonitor();
+setTimeout(initCharts, 400);
+
+setInterval(()=>{
+  const log=document.getElementById('actLog');
+  if(!log) return;
+  const msgs=[
+    ['var(--gr)','✓ Autosave jawaban berhasil'],
+    ['var(--am)','⚠ Terdeteksi minimize browser'],
+    ['var(--gr)','✓ Mahasiswa baru submit ujian'],
+    ['var(--gr)','✓ Data tersinkron ke Spreadsheet'],
+  ];
+  const m=msgs[Math.floor(Math.random()*msgs.length)];
+  const now=new Date();
+  const t=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--brd)';
+  div.innerHTML=`<span style="color:var(--tx3);flex-shrink:0">${t}</span><span style="color:${m[0]}">${m[1]}</span>`;
+  log.insertBefore(div,log.firstChild);
+  if(log.children.length>6) log.removeChild(log.lastChild);
+},5000);
+</script>
