@@ -1,4 +1,12 @@
 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<meta name="description" content="Dashboard CBT Fakultas Kehutanan &amp; Lingkungan Tropis Universitas Mulawarman">
+<title>CBT-FKLT Unmul — Dashboard Ujian Online</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -14,8 +22,8 @@
 --r:8px;--rl:12px;
 font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--tx)
 }
-body{background:var(--bg);min-height:700px}
-.shell{display:flex;flex-direction:column;height:700px;overflow:hidden}
+body{background:var(--bg);min-height:100vh;min-height:100dvh}
+.shell{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;container-type:inline-size;container-name:shell}
 
 .hdr{height:52px;background:var(--bg2);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
 .hdr-logo{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14px;color:var(--ac);letter-spacing:-.3px}
@@ -149,23 +157,119 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .img-prev{width:100%;max-height:80px;object-fit:contain;border-radius:var(--r);background:var(--bg4);display:none}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(155,127,244,.3);border-top-color:var(--pu);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ================= Tautan aplikasi & tampilan perangkat ================= */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.hdr-menu{display:none;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg3);color:var(--tx2);font-size:14px;cursor:pointer;flex-shrink:0;padding:0}
+.sb-backdrop{display:none;position:fixed;top:52px;right:0;bottom:0;left:0;background:rgba(4,7,14,.55);z-index:40}
+.lnk{margin-bottom:13px}
+.lnk-lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.lnk-row{display:flex;gap:6px}
+.lnk-inp{flex:1;min-width:0;font-size:11px;color:var(--tx2)}
+.lnk-note{font-size:10px;color:var(--tx3);margin-top:6px;line-height:1.5}
+.det{display:flex;flex-direction:column;margin-bottom:12px}
+.det-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;padding:7px 0;border-bottom:1px solid var(--brd)}
+.det-row span{color:var(--tx3)}
+.det-row strong{color:var(--tx);font-weight:700;text-align:right}
+.sw-row{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:10px 12px}
+.sw{width:44px;height:25px;border-radius:20px;border:1px solid var(--brd2);background:var(--bg4);cursor:pointer;padding:2px;display:flex;align-items:center;flex-shrink:0;transition:background .15s;margin-left:auto}
+.sw>span{width:19px;height:19px;border-radius:50%;background:var(--tx3);transition:transform .15s,background .15s}
+.sw.on{background:rgba(79,124,255,.28);border-color:var(--ac)}
+.sw.on>span{transform:translateX(19px);background:var(--ac)}
+
+/* ================= Tampilan mahasiswa (app-style) ================= */
+.stu{display:none}
+html[data-role="mahasiswa"] body{background:#06080e}
+html[data-role="mahasiswa"] .shell{display:none}
+html[data-role="mahasiswa"] .stu{display:flex;flex-direction:column;width:100%;max-width:480px;margin:0 auto;height:100vh;height:100dvh;background:var(--bg);border-left:1px solid var(--brd);border-right:1px solid var(--brd);overflow:hidden}
+.stu-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0}
+.stu-ava{width:38px;height:38px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.stu-nm{font-size:13px;font-weight:800;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stu-sub{font-size:10px;color:var(--tx3);margin-top:1px}
+.stu-body{flex:1;overflow-y:auto;padding:14px}
+.stu-body::-webkit-scrollbar{width:4px}
+.stu-body::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+.stu-hero{background:linear-gradient(135deg,rgba(79,124,255,.22),rgba(155,127,244,.12));border:1px solid rgba(79,124,255,.35);border-radius:16px;padding:15px;margin-bottom:16px;scroll-margin-top:6px}
+.stu-hero-lbl{font-size:10px;font-weight:800;color:var(--gr);letter-spacing:.4px;text-transform:uppercase}
+.stu-hero-ttl{font-size:19px;font-weight:900;margin:6px 0 3px;letter-spacing:-.4px;color:var(--tx)}
+.stu-hero-meta{font-size:11px;color:var(--tx2);line-height:1.5}
+.stu-hero-btns{display:flex;gap:6px;margin-top:12px}
+.stu-sect{margin-bottom:16px;scroll-margin-top:6px}
+.stu-sect-t{font-size:10px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.stu-row{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:11px 12px;margin-bottom:7px}
+.stu-row-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.stu-row-t{flex:1;min-width:0}
+.stu-row-nm{font-size:12px;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stu-row-s{font-size:10px;color:var(--tx3);margin-bottom:1px}
+.stu-nilai{font-size:18px;font-weight:900;line-height:1;color:var(--gr)}
+.stu-nav{display:flex;background:var(--bg2);border-top:1px solid var(--brd);flex-shrink:0;padding:5px 4px calc(5px + env(safe-area-inset-bottom,0px))}
+.stu-nb{flex:1;background:none;border:none;color:var(--tx3);font-size:16px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0;cursor:pointer;border-radius:var(--r);line-height:1.2}
+.stu-nb span{font-size:9px;font-weight:700}
+.stu-nb.on{color:var(--ac);background:rgba(79,124,255,.1)}
+.stu-foot{text-align:center;font-size:9px;color:var(--tx3);padding:6px 0 4px}
+
+/* ================= Mode "seperti aplikasi di HP" di layar lebar ================= */
+html[data-view="hp"] body{display:flex;align-items:center;justify-content:center;padding:16px;background:#06080e}
+html[data-view="hp"] .shell{width:430px;height:min(860px,calc(100dvh - 32px));border-radius:28px;border:1px solid var(--brd2);box-shadow:0 26px 70px rgba(0,0,0,.6)}
+html[data-view="hp"] .stu{border-radius:28px;border:1px solid var(--brd2);box-shadow:0 26px 70px rgba(0,0,0,.6);height:min(860px,calc(100dvh - 32px))}
+
+/* ================= Tata letak otomatis mengikuti ukuran layar ================= */
+@container shell (max-width: 900px){
+  .hdr-menu{display:flex}
+  .hdr-sub{display:none}
+  .sb{position:fixed;top:52px;bottom:0;left:0;z-index:45;width:268px;transform:translateX(-102%);transition:transform .2s ease;box-shadow:0 18px 44px rgba(0,0,0,.5)}
+  html[data-sb="open"] .sb{transform:none}
+  html[data-sb="open"] .sb-backdrop{display:block}
+  .g2{grid-template-columns:1fr}
+  .sg{grid-template-columns:repeat(2,1fr)}
+  .mk-grid{grid-template-columns:repeat(2,1fr)}
+  .ai-form{grid-template-columns:1fr}
+  .main{padding:14px}
+  .tw{overflow-x:auto}
+  .tw table{min-width:600px}
+}
+@container shell (max-width: 620px){
+  .hdr{height:56px;padding:0 10px;gap:8px}
+  .hdr-user{display:none}
+  .body{flex-direction:column}
+  .main{order:1;padding:12px}
+  .nav{order:2;width:100%;height:58px;flex-direction:row;align-items:center;justify-content:space-around;border-right:none;border-top:1px solid var(--brd);padding:0 6px;gap:0}
+  .nb{width:44px;height:44px;font-size:18px}
+  .ndiv{display:none}
+  .sb{top:0;width:min(280px,84vw)}
+  .sb-backdrop{top:0}
+  .ph{flex-wrap:wrap;gap:8px}
+  .pt{font-size:16px}
+  .sg{grid-template-columns:1fr 1fr;gap:8px}
+  .sv{font-size:19px}
+  .mk-grid{grid-template-columns:1fr}
+  .notif-wrap{top:auto;bottom:66px;left:8px;right:8px;max-width:none}
+}
+@media (max-width: 620px){
+  .stu{border-left:none;border-right:none}
+}
+
 </style>
+</head>
+<body>
 
 <div class="shell" style="position:relative">
 <div class="notif-wrap" id="nwrap"></div>
 
 <div class="hdr">
+  <button class="hdr-menu" onclick="toggleSB()" aria-label="Daftar peserta" title="Daftar peserta">☰</button>
   <div class="hdr-logo"><div class="logo-sq">U</div>CBT-FKLT</div>
   <div class="hdr-sep"></div>
   <span class="hdr-sub">Fakultas Kehutanan &amp; Lingkungan Tropis — Unmul</span>
   <div class="hdr-r">
     <span class="live-dot">● Live</span>
-    <span style="font-size:11px;color:var(--tx2)">Dr. Admin Kehutanan</span>
+    <span class="hdr-user" style="font-size:11px;color:var(--tx2)">Dr. Admin Kehutanan</span>
     <div class="ava">AK</div>
   </div>
 </div>
 
 <div class="body">
+<div class="sb-backdrop" id="sbBackdrop" onclick="toggleSB()"></div>
 <div class="nav">
   <button class="nb on" onclick="pg('home')" title="Dashboard">⊞</button>
   <button class="nb" onclick="pg('mk')" title="Mata Kuliah">◉</button>
@@ -173,9 +277,10 @@ tr:hover td{background:rgba(255,255,255,.015)}
   <button class="nb" onclick="pg('hasil')" title="Hasil Ujian">≡</button>
   <div class="ndiv"></div>
   <button class="nb" onclick="pg('monitor')" title="Monitoring">⬡</button>
+  <button class="nb" onclick="pg('set')" title="Pengaturan">⚙</button>
 </div>
 
-<div class="sb">
+<div class="sb" id="sbPeserta">
   <div class="sb-hdr">
     <div class="sb-title">Peserta Ujian</div>
     <input class="sb-srch" type="text" placeholder="Cari nama / NIM..." oninput="cariPeserta(this.value)" id="cariInput">
@@ -194,7 +299,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
   <div class="ph">
     <div><div class="pt">Dashboard Utama</div><div class="ps">Selasa, 5 Mei 2026 — UTS Semester Genap 2025/2026 — FKLT Unmul</div></div>
     <div style="display:flex;gap:6px">
-      <button class="btn btn-g" onclick="ntf('Link ujian disalin ke clipboard!','gr')">🔗 Bagikan Link</button>
+      <button class="btn btn-g" onclick="pg('set')">🔗 Bagikan Link</button>
       <button class="btn btn-p" onclick="pg('ai')">✦ AI Buat Soal</button>
     </div>
   </div>
@@ -206,7 +311,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <div class="sc"><div class="sl">Rata-rata Nilai</div><div class="sv" style="color:var(--pu)">78</div><div class="ss">Dari 100 poin</div></div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+  <div class="g2">
     <div class="card" style="padding-bottom:10px">
       <div class="card-t">Distribusi Nilai per Mata Kuliah</div>
       <div style="position:relative;height:180px"><canvas id="chartBar" role="img" aria-label="Grafik rata-rata nilai per mata kuliah">Rata-rata nilai: Ekologi Hutan 78, Silvika 82, Manajemen Hutan 71, Dendrologi 85, Ilmu Tanah 68, Hidrologi 75.</canvas></div>
@@ -228,7 +333,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+  <div class="g2">
     <div class="card" style="padding-bottom:10px">
       <div class="card-t">Progress Submit per Kelas <span class="bdg b-gr">Live</span></div>
       <div style="display:flex;flex-direction:column;gap:8px" id="progList"></div>
@@ -245,7 +350,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+  <div class="g2">
     <div class="card">
       <div class="card-t">Jadwal Ujian <span class="bdg b-am">UTS & UAS</span></div>
       <div style="display:flex;flex-direction:column;gap:6px" id="jadwalList"></div>
@@ -417,9 +522,118 @@ tr:hover td{background:rgba(255,255,255,.015)}
   </div>
 </div>
 
+<div class="page" id="page-set">
+  <div class="ph">
+    <div><div class="pt">Pengaturan</div><div class="ps">Tautan aplikasi &amp; tampilan otomatis di setiap perangkat</div></div>
+    <span class="bdg b-ac" style="padding:5px 11px">🔗 Siap dibagikan</span>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-t">Tautan Aplikasi <span class="bdg b-ac">3 tautan</span></div>
+
+      <div class="lnk">
+        <div class="lnk-lbl">Link Utama Aplikasi</div>
+        <div class="lnk-row">
+          <input class="ai-inp lnk-inp" id="lnkMain" readonly>
+          <button class="btn btn-p" onclick="salin('lnkMain')">Salin</button>
+        </div>
+        <div class="lnk-note">Dibagikan ke siapa pun. Terbuka di Windows maupun Android, tata letak menyesuaikan sendiri.</div>
+      </div>
+
+      <div class="lnk">
+        <div class="lnk-lbl">Link Pengguna (Dosen / Admin)</div>
+        <div class="lnk-row">
+          <input class="ai-inp lnk-inp" id="lnkUser" readonly>
+          <button class="btn btn-g" onclick="salin('lnkUser')">Salin</button>
+        </div>
+        <div class="lnk-note">Tampilan penuh: dashboard, mata kuliah, AI soal, hasil, monitoring.</div>
+      </div>
+
+      <div class="lnk">
+        <div class="lnk-lbl">Link Mahasiswa / Siswa</div>
+        <div class="lnk-row">
+          <input class="ai-inp lnk-inp" id="lnkMhs" readonly>
+          <button class="btn btn-gr" onclick="salin('lnkMhs')">Salin</button>
+        </div>
+        <select class="ai-inp" id="pilihMhs" onchange="updateLinks()" style="margin-top:6px"></select>
+        <div class="lnk-note">Tautan membawa NIM mahasiswa terpilih dan langsung terbuka di tampilan aplikasi HP.</div>
+      </div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn btn-g" onclick="bukaLink('lnkUser')">↗ Buka tampilan pengguna</button>
+        <button class="btn btn-g" onclick="bukaLink('lnkMhs')">↗ Buka tampilan mahasiswa</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-t">Tampilan Perangkat <span class="bdg b-gr">● Otomatis</span></div>
+
+      <div class="det">
+        <div class="det-row"><span>Perangkat terdeteksi</span><strong id="detDevice">—</strong></div>
+        <div class="det-row"><span>Sistem operasi</span><strong id="detOs">—</strong></div>
+        <div class="det-row"><span>Ukuran layar</span><strong id="detScreen">—</strong></div>
+        <div class="det-row"><span>Orientasi</span><strong id="detOrient">—</strong></div>
+        <div class="det-row" style="border-bottom:none"><span>Tata letak aktif</span><strong id="detLayout" style="color:var(--gr)">—</strong></div>
+      </div>
+
+      <div class="sw-row">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--tx)">Tampilan seperti aplikasi di HP</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px">Bingkai ponsel + navigasi bawah</div>
+        </div>
+        <button class="sw" id="swHp" role="switch" aria-checked="false" aria-label="Tampilan seperti aplikasi di HP" onclick="toggleModeHp()"><span></span></button>
+      </div>
+
+      <div class="lnk-note">Layar mendeteksi sendiri perangkat yang dipakai: di Windows tampil lebar dengan sidebar dan tabel, di Android/HP otomatis jadi tampilan aplikasi dengan navigasi bawah.</div>
+    </div>
+  </div>
+</div>
+
+
 </div>
 </div>
 </div>
+
+<div class="stu" id="stuApp">
+  <div class="stu-hdr">
+    <div class="stu-ava" id="stuAva">MH</div>
+    <div style="flex:1;min-width:0">
+      <div class="stu-nm" id="stuNm">Mahasiswa</div>
+      <div class="stu-sub" id="stuSub">NIM • Kelas</div>
+    </div>
+    <button class="nb" style="border:1px solid var(--brd);border-radius:var(--r);width:34px;height:34px;font-size:15px" onclick="ntf('Pengaturan aplikasi mahasiswa','ac')" aria-label="Pengaturan">⚙</button>
+  </div>
+
+  <div class="stu-body" id="stuBody">
+    <div class="stu-hero" id="stuHero"></div>
+
+    <div class="stu-sect" id="stuJadwalSect">
+      <div class="stu-sect-t">Jadwal Ujian</div>
+      <div id="stuJadwal"></div>
+    </div>
+
+    <div class="stu-sect" id="stuHasilSect">
+      <div class="stu-sect-t">Hasil Ujian</div>
+      <div id="stuHasil"></div>
+    </div>
+
+    <div class="stu-sect" id="stuProfilSect">
+      <div class="stu-sect-t">Profil</div>
+      <div id="stuProfil"></div>
+    </div>
+
+    <div class="stu-foot">CBT-FKLT Unmul • tampilan mahasiswa</div>
+  </div>
+
+  <div class="stu-nav">
+    <button class="stu-nb on" onclick="stuGo('stuHero',this)">📝<span>Ujian</span></button>
+    <button class="stu-nb" onclick="stuGo('stuJadwalSect',this)">🗓️<span>Jadwal</span></button>
+    <button class="stu-nb" onclick="stuGo('stuHasilSect',this)">📊<span>Hasil</span></button>
+    <button class="stu-nb" onclick="stuGo('stuProfilSect',this)">👤<span>Profil</span></button>
+  </div>
+</div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -723,11 +937,12 @@ function pg(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const navMap={home:0,mk:1,ai:2,hasil:3,monitor:4};
+  const navMap={home:0,mk:1,ai:2,hasil:3,monitor:4,set:5};
   const btns=document.querySelectorAll('.nb');
   if(navMap[id]!==undefined) btns[navMap[id]].classList.add('on');
   if(id==='home'&&!chartsInit){initCharts();chartsInit=true}
   if(id==='home'){initCharts()}
+  if(id==='set'){updateLinks();deteksiPerangkat()}
 }
 
 function initCharts(){
@@ -788,9 +1003,169 @@ function ntf(msg,type){
   setTimeout(()=>{d.style.opacity='0';d.style.transform='translateX(8px)';d.style.transition='all .3s';setTimeout(()=>d.remove(),300)},2800);
 }
 
+/* ================= Pengaturan: tautan berbagi & tampilan perangkat ================= */
+const ROLE_PARAM=new URLSearchParams(location.search);
+const BASE_URL=location.origin+location.pathname;
+
+function setTxt(id,txt){const el=document.getElementById(id);if(el)el.textContent=txt}
+
+function updateLinks(){
+  const sel=document.getElementById('pilihMhs');
+  if(!sel) return;
+  if(!sel.options.length){
+    sel.innerHTML=peserta.map(p=>`<option value="${p.nim}">${p.nm} — ${p.nim}</option>`).join('');
+  }
+  const nim=sel.value||peserta[0].nim;
+  const main=document.getElementById('lnkMain');
+  if(main) main.value=BASE_URL;
+  document.getElementById('lnkUser').value=BASE_URL+'?role=user';
+  document.getElementById('lnkMhs').value=BASE_URL+'?role=mahasiswa&nim='+nim;
+}
+
+function salin(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const val=el.value;
+  const done=()=>ntf('Tautan disalin ke clipboard','gr');
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(val).then(done).catch(()=>{
+      el.select();
+      try{document.execCommand('copy');done()}catch(e){ntf('Salin manual: '+val,'am')}
+    });
+  }else{
+    el.select();
+    try{document.execCommand('copy');done()}catch(e){ntf('Salin manual: '+val,'am')}
+  }
+}
+
+function bukaLink(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const w=window.open(el.value,'_blank');
+  if(!w) ntf('Popup diblokir — salin tautannya lalu buka manual','am');
+}
+
+function deteksiPerangkat(){
+  const ua=navigator.userAgent;
+  let os='Tidak diketahui';
+  if(/Android/i.test(ua)) os='Android';
+  else if(/iPhone|iPad|iPod/i.test(ua)) os='iOS';
+  else if(/Windows/i.test(ua)) os='Windows';
+  else if(/Mac OS X/i.test(ua)) os='macOS';
+  else if(/Linux/i.test(ua)) os='Linux';
+  const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(ua)||matchMedia('(pointer: coarse)').matches;
+  const shell=document.querySelector('.shell');
+  const w=(shell&&shell.offsetWidth)||window.innerWidth;
+  const layout=w<=620?'Aplikasi HP (navigasi bawah)':w<=900?'Tablet (sidebar lipat)':'Desktop (sidebar penuh)';
+  document.documentElement.dataset.device=mobile?'hp':'desktop';
+  setTxt('detDevice',mobile?'Ponsel / Tablet':'Komputer / Laptop');
+  setTxt('detOs',os);
+  setTxt('detScreen',window.innerWidth+' × '+window.innerHeight+' px');
+  setTxt('detOrient',window.innerWidth>window.innerHeight?'Lanskap':'Potret');
+  setTxt('detLayout',layout);
+}
+
+function toggleModeHp(){
+  const on=document.documentElement.dataset.view!=='hp';
+  document.documentElement.dataset.view=on?'hp':'normal';
+  try{localStorage.setItem('cbt_view',on?'hp':'normal')}catch(e){}
+  const sw=document.getElementById('swHp');
+  if(sw){sw.classList.toggle('on',on);sw.setAttribute('aria-checked',on?'true':'false')}
+  deteksiPerangkat();
+  ntf(on?'Tampilan aplikasi HP aktif':'Tampilan desktop aktif',on?'ac':'gr');
+}
+
+function toggleSB(){
+  const open=document.documentElement.dataset.sb==='open';
+  document.documentElement.dataset.sb=open?'closed':'open';
+}
+
+window.addEventListener('resize',deteksiPerangkat);
+window.addEventListener('orientationchange',()=>setTimeout(deteksiPerangkat,200));
+
+/* ================= Tampilan mahasiswa / siswa ================= */
+function renderStudent(nim){
+  const s=peserta.find(p=>p.nim===nim)||peserta[0];
+  document.title='Ujian Saya — '+s.nm;
+  setTxt('stuNm',s.nm);
+  setTxt('stuSub',s.nim+' • '+s.kls);
+  const ava=document.getElementById('stuAva');
+  if(ava) ava.textContent=inits(s.nm);
+
+  const mk=matakuliah.find(m=>m.nm===s.mk)||matakuliah[0];
+  const aktif=jadwal.find(j=>j.st==='berlangsung'&&j.kls===s.kls)||jadwal.find(j=>j.st==='berlangsung')||jadwal[0];
+  const selesai=s.nilai!==null;
+  const hero=document.getElementById('stuHero');
+  if(hero) hero.innerHTML=`
+    <div class="stu-hero-lbl">${selesai?'✓ Sudah dikerjakan':'● Ujian berlangsung'}</div>
+    <div class="stu-hero-ttl">${aktif.mk}</div>
+    <div class="stu-hero-meta">${aktif.tgl} • ${aktif.jam} • ${mk.soal} soal • ${aktif.tipe} • Kelas ${aktif.kls}</div>
+    ${selesai?`<div style="display:flex;align-items:flex-end;gap:8px;margin-top:11px">
+      <div class="stu-nilai">${s.nilai}</div>
+      <div style="font-size:10px;color:var(--tx2);padding-bottom:2px">/100 • Grade <strong style="color:var(--gr)">${grade(s.nilai)}</strong> • submit ${s.sub||'—'}</div>
+    </div>
+    <div class="stu-hero-btns"><button class="btn btn-g" style="flex:1;justify-content:center" onclick="ntf('Membuka pembahasan jawaban...','ac')">Lihat Pembahasan</button></div>`
+    :`<div class="stu-hero-btns">
+      <button class="btn btn-p" style="flex:1;justify-content:center" onclick="ntf('Ujian dibuka — fullscreen & penguncian layar aktif','ac')">Masuk Ujian</button>
+      <button class="btn btn-g" onclick="ntf('Aturan ujian dibuka','tl')">Aturan</button>
+    </div>`}`;
+
+  const jd=document.getElementById('stuJadwal');
+  if(jd) jd.innerHTML=jadwal.map(j=>`<div class="stu-row">
+    <div class="stu-row-ic" style="background:${j.st==='berlangsung'?'var(--gr2)':'var(--bg4)'};color:${j.st==='berlangsung'?'var(--gr)':'var(--tx3)'}">${j.st==='berlangsung'?'●':'○'}</div>
+    <div class="stu-row-t"><div class="stu-row-nm">${j.mk}</div><div class="stu-row-s">${j.tgl} • ${j.jam} • ${j.tipe}</div></div>
+    <span class="bdg ${j.st==='berlangsung'?'b-gr':'b-gx'}">${j.st==='berlangsung'?'Live':'Mendatang'}</span>
+  </div>`).join('');
+
+  const hsl=document.getElementById('stuHasil');
+  if(hsl) hsl.innerHTML=selesai?`<div class="stu-row">
+    <div class="stu-row-ic" style="background:var(--gr2);color:var(--gr)">✓</div>
+    <div class="stu-row-t"><div class="stu-row-nm">${s.mk}</div><div class="stu-row-s">Benar ${s.benar} • Salah ${s.salah} • submit ${s.sub}</div></div>
+    <div style="text-align:right">
+      <div class="stu-nilai">${s.nilai}</div>
+      <span class="bdg ${grCls(s.nilai)}" style="margin-top:4px">${grade(s.nilai)}</span>
+    </div>
+  </div>`:`<div class="stu-row">
+    <div class="stu-row-ic" style="background:var(--bg4);color:var(--tx3)">…</div>
+    <div class="stu-row-t"><div class="stu-row-nm">Belum ada nilai</div><div class="stu-row-s">Nilai tampil setelah ujian disubmit</div></div>
+  </div>`;
+
+  const pr=document.getElementById('stuProfil');
+  if(pr) pr.innerHTML=`
+    <div class="stu-row"><div class="stu-row-t"><div class="stu-row-s">Nama</div><div class="stu-row-nm">${s.nm}</div></div></div>
+    <div class="stu-row"><div class="stu-row-t"><div class="stu-row-s">NIM</div><div class="stu-row-nm">${s.nim}</div></div></div>
+    <div class="stu-row"><div class="stu-row-t"><div class="stu-row-s">Kelas</div><div class="stu-row-nm">${s.kls}</div></div></div>
+    <div class="stu-row"><div class="stu-row-t"><div class="stu-row-s">Program studi</div><div class="stu-row-nm">Ilmu Kehutanan — FKLT Unmul</div></div></div>`;
+}
+
+function stuGo(id,btn){
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.stu-nb').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+}
+
+/* ================= Init: deteksi perangkat & tautan ================= */
+function initAplikasi(){
+  try{ if(localStorage.getItem('cbt_view')==='hp') document.documentElement.dataset.view='hp'; }catch(e){}
+  const sw=document.getElementById('swHp');
+  if(sw){
+    const on=document.documentElement.dataset.view==='hp';
+    sw.classList.toggle('on',on);
+    sw.setAttribute('aria-checked',on?'true':'false');
+  }
+  updateLinks();
+  deteksiPerangkat();
+  if(ROLE_PARAM.get('role')==='mahasiswa'){
+    document.documentElement.dataset.role='mahasiswa';
+    renderStudent(ROLE_PARAM.get('nim'));
+  }
+}
+
 renderSB(); renderDashTable(); renderProg(); renderJadwal(); renderMK();
 renderHasilTabs(); renderHasilStats(); renderHasilTable(); renderMonitor();
 setTimeout(initCharts, 400);
+initAplikasi();
 
 setInterval(()=>{
   const log=document.getElementById('actLog');
@@ -811,3 +1186,5 @@ setInterval(()=>{
   if(log.children.length>6) log.removeChild(log.lastChild);
 },5000);
 </script>
+</body>
+</html>
