@@ -149,6 +149,16 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .img-prev{width:100%;max-height:80px;object-fit:contain;border-radius:var(--r);background:var(--bg4);display:none}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(155,127,244,.3);border-top-color:var(--pu);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ================= Grid dashboard responsif ================= */
+.sg{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:10px;margin-bottom:12px;align-items:stretch}
+.dash-grid>.card{display:flex;flex-direction:column;min-width:0;height:100%}
+.dash-grid>.card>.card-t{flex:0 0 auto}
+/* Chart menyesuaikan sisa tinggi kartu, jadi semua chart dalam satu baris
+   rata atas dan rata bawah tanpa tinggi tetap yang bikin kartu tidak sejajar. */
+.chart{position:relative;flex:1 1 0;min-height:170px;width:100%}
+.chart>canvas{display:block}
 </style>
 
 <div class="shell" style="position:relative">
@@ -206,10 +216,10 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <div class="sc"><div class="sl">Rata-rata Nilai</div><div class="sv" style="color:var(--pu)">78</div><div class="ss">Dari 100 poin</div></div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+  <div class="dash-grid">
     <div class="card" style="padding-bottom:10px">
       <div class="card-t">Distribusi Nilai per Mata Kuliah</div>
-      <div style="position:relative;height:180px"><canvas id="chartBar" role="img" aria-label="Grafik rata-rata nilai per mata kuliah">Rata-rata nilai: Ekologi Hutan 78, Silvika 82, Manajemen Hutan 71, Dendrologi 85, Ilmu Tanah 68, Hidrologi 75.</canvas></div>
+      <div class="chart"><canvas id="chartBar" role="img" aria-label="Grafik rata-rata nilai per mata kuliah">Rata-rata nilai: Ekologi Hutan 78, Silvika 82, Manajemen Hutan 71, Dendrologi 85, Ilmu Tanah 68, Hidrologi 75.</canvas></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:10px;color:var(--tx2)">
         <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#4f7cff;display:inline-block"></span>Nilai rata-rata</span>
         <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#1fba84;display:inline-block"></span>Target (75)</span>
@@ -217,7 +227,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
     <div class="card" style="padding-bottom:10px">
       <div class="card-t">Distribusi Grade Mahasiswa</div>
-      <div style="position:relative;height:180px"><canvas id="chartDona" role="img" aria-label="Diagram donat distribusi grade mahasiswa">A: 8, B+: 6, B: 5, C+: 2, C: 1</canvas></div>
+      <div class="chart"><canvas id="chartDona" role="img" aria-label="Diagram donat distribusi grade mahasiswa">A: 8, B+: 6, B: 5, C+: 2, C: 1</canvas></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:10px;color:var(--tx2)">
         <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#1fba84;display:inline-block"></span>A (8)</span>
         <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#4f7cff;display:inline-block"></span>B+ (6)</span>
@@ -228,7 +238,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+  <div class="dash-grid">
     <div class="card" style="padding-bottom:10px">
       <div class="card-t">Progress Submit per Kelas <span class="bdg b-gr">Live</span></div>
       <div style="display:flex;flex-direction:column;gap:8px" id="progList"></div>
@@ -245,14 +255,14 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+  <div class="dash-grid">
     <div class="card">
       <div class="card-t">Jadwal Ujian <span class="bdg b-am">UTS & UAS</span></div>
       <div style="display:flex;flex-direction:column;gap:6px" id="jadwalList"></div>
     </div>
     <div class="card">
       <div class="card-t">Statistik Kecurangan</div>
-      <div style="position:relative;height:140px"><canvas id="chartLine" role="img" aria-label="Grafik deteksi kecurangan">Deteksi pelanggaran per jam.</canvas></div>
+      <div class="chart"><canvas id="chartLine" role="img" aria-label="Grafik deteksi kecurangan">Deteksi pelanggaran per jam.</canvas></div>
     </div>
   </div>
 
