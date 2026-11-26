@@ -18,16 +18,16 @@ export default defineConfig({
       includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
       devOptions: { enabled: true, type: 'module', navigateFallback: 'index.html' },
       manifest: {
-        name: 'E-Ujian CBT — Platform Ujian Online & Offline',
-        short_name: 'E-Ujian CBT',
+        name: 'E-Ujian Nusantara — Ujian SCBT Online & Offline',
+        short_name: 'E-Ujian SCBT',
         description:
-          'Platform ujian berbasis komputer yang bisa dipakai online maupun offline.',
+          'Platform asesmen CBT untuk sekolah, madrasah, kampus, dan lembaga — online maupun offline.',
         lang: 'id',
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        background_color: '#0d1117',
-        theme_color: '#0d1117',
+        background_color: '#f1f5f9',
+        theme_color: '#1d4ed8',
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

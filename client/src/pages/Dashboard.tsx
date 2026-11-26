@@ -1,175 +1,246 @@
 import { useMemo } from 'react';
-import { useAppState } from '../lib/store';
-import { gradeOf, gradeTone } from '../lib/format';
-import { Badge, EmptyState, ProgressBar, StatCard } from '../components/ui';
+import { useAppState, useSession } from '../lib/store';
+import { Badge, EmptyState, Panel, ProgressBar, StatCard } from '../components/ui';
+import { EXAM_MODE_LABEL, formatDate, formatDateTime, gradeOf, gradeTone, progressOf } from '../lib/format';
+import Icon from '../components/Icon';
+import type { Tone } from '../types';
 
-export default function Dashboard() {
-  const { peserta, ujian, ready, serverOnline } = useAppState();
+const GRADE_ORDER = ['A', 'B+', 'B', 'C+', 'C', 'D'];
+
+export default function DashboardPage() {
+  const { workspace } = useAppState();
+  const user = useSession();
 
   const stats = useMemo(() => {
-    const nilai = peserta.map((row) => row.nilai).filter((value): value is number => value !== null);
-    const selesai = peserta.filter((row) => row.status === 'selesai').length;
+    const students = workspace.users.filter((row) => row.role === 'peserta');
+    const activeExams = workspace.exams.filter((exam) => exam.status === 'berlangsung');
+    const finished = workspace.attempts.filter((attempt) => attempt.status === 'selesai');
+    const scores = finished.map((attempt) => attempt.score ?? 0);
+    const average = scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : 0;
+    const passed = finished.filter((attempt) => {
+      const exam = workspace.exams.find((row) => row.id === attempt.examId);
+      return (attempt.score ?? 0) >= (exam?.kkm ?? 75);
+    }).length;
     return {
-      total: peserta.length,
-      aktif: ujian.filter((row) => row.status === 'aktif').length,
-      selesai,
-      rata: nilai.length ? Math.round(nilai.reduce((a, b) => a + b, 0) / nilai.length) : 0,
+      students: students.length,
+      activeExams: activeExams.length,
+      totalExams: workspace.exams.length,
+      finished: finished.length,
+      average,
+      passedRate: finished.length ? Math.round((passed / finished.length) * 100) : 0,
+      finishedAttempts: finished,
     };
-  }, [peserta, ujian]);
+  }, [workspace]);
 
-  const kelasProgress = useMemo(() => {
-    const groups = new Map<string, { total: number; selesai: number }>();
-    peserta.forEach((row) => {
-      const key = row.kelas || 'Tanpa kelas';
-      const group = groups.get(key) ?? { total: 0, selesai: 0 };
-      group.total += 1;
-      if (row.status === 'selesai') group.selesai += 1;
-      groups.set(key, group);
+  const gradeBuckets = useMemo(() => {
+    const counts: Record<string, number> = { A: 0, 'B+': 0, B: 0, 'C+': 0, C: 0, D: 0 };
+    stats.finishedAttempts.forEach((attempt) => {
+      const grade = gradeOf(attempt.score ?? null);
+      if (grade in counts) counts[grade] += 1;
     });
-    return [...groups.entries()]
-      .map(([kelas, group]) => ({
-        kelas,
-        ...group,
-        percent: Math.round((group.selesai / group.total) * 100),
-      }))
-      .sort((a, b) => a.kelas.localeCompare(b.kelas));
-  }, [peserta]);
+    const max = Math.max(1, ...Object.values(counts));
+    return GRADE_ORDER.map((grade) => ({ grade, count: counts[grade], width: (counts[grade] / max) * 100 }));
+  }, [stats.finishedAttempts]);
 
-  const gradeDist = useMemo(() => {
-    const order = ['A', 'B+', 'B', 'C+', 'C', 'D'];
-    const counts = new Map<string, number>(order.map((grade) => [grade, 0]));
-    peserta.forEach((row) => {
-      if (row.nilai === null) return;
-      const grade = gradeOf(row.nilai);
-      counts.set(grade, (counts.get(grade) ?? 0) + 1);
-    });
-    const max = Math.max(1, ...counts.values());
-    return order.map((grade) => ({ grade, count: counts.get(grade) ?? 0, percent: Math.round(((counts.get(grade) ?? 0) / max) * 100) }));
-  }, [peserta]);
-
-  const rekap = useMemo(
+  const classProgress = useMemo(
     () =>
-      peserta
-        .filter((row) => row.nilai !== null)
+      workspace.classes.map((kelas) => {
+        const students = workspace.users.filter((row) => row.role === 'peserta' && row.classId === kelas.id);
+        const attempts = workspace.attempts.filter(
+          (attempt) => attempt.classId === kelas.id && attempt.status === 'selesai',
+        );
+        return {
+          ...kelas,
+          students: students.length,
+          done: attempts.length,
+          percent: progressOf(attempts.length, Math.max(students.length, 1)),
+        };
+      }),
+    [workspace],
+  );
+
+  const subjectRows = useMemo(() => {
+    const map = new Map<string, { total: number; sum: number; count: number }>();
+    workspace.attempts
+      .filter((attempt) => attempt.status === 'selesai')
+      .forEach((attempt) => {
+        const exam = workspace.exams.find((row) => row.id === attempt.examId);
+        if (!exam) return;
+        const entry = map.get(exam.subject) ?? { total: 0, sum: 0, count: 0 };
+        entry.total += 1;
+        entry.sum += attempt.score ?? 0;
+        entry.count += 1;
+        map.set(exam.subject, entry);
+      });
+    return [...map.entries()]
+      .map(([subject, value]) => ({
+        subject,
+        count: value.count,
+        average: value.count ? Math.round(value.sum / value.count) : 0,
+      }))
+      .sort((a, b) => b.average - a.average);
+  }, [workspace]);
+
+  const recent = useMemo(
+    () =>
+      [...stats.finishedAttempts]
         .sort((a, b) => (b.submittedAt ?? '').localeCompare(a.submittedAt ?? ''))
-        .slice(0, 8),
-    [peserta],
+        .slice(0, 6),
+    [stats.finishedAttempts],
   );
 
   return (
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-sub">Ringkasan ujian, peserta, dan hasil terbaru</p>
+          <h1 className="page-title">Analitik &amp; Evaluasi</h1>
+          <p className="page-sub">
+            Statistik skor, ketercapaian KKM, dan pemetaan hasil ujian seluruh kelas
+          </p>
         </div>
-        <Badge tone={serverOnline ? 'green' : 'amber'}>
-          {serverOnline ? 'Sinkron dengan server' : 'Data lokal (offline)'}
-        </Badge>
+        <span className="chip chip-blue">
+          <Icon name="clock" size={13} /> {formatDate(new Date().toISOString())}
+        </span>
       </div>
 
-      <div className="grid-stats">
-        <StatCard label="Total Peserta" value={stats.total} sub="Terdaftar di semua kelas" tone="blue" />
-        <StatCard label="Ujian Aktif" value={stats.aktif} sub={`dari ${ujian.length} mata kuliah`} tone="green" />
-        <StatCard label="Peserta Selesai" value={stats.selesai} sub="Sudah submit ujian" tone="violet" />
-        <StatCard label="Rata-rata Nilai" value={stats.rata} sub="Dari peserta yang selesai" tone="amber" />
+      <div className="stat-grid">
+        <StatCard
+          label="Total Peserta"
+          value={stats.students}
+          sub="Terdaftar di semua kelas"
+          icon={<Icon name="users" size={16} />}
+        />
+        <StatCard
+          label="Ujian Berlangsung"
+          value={stats.activeExams}
+          sub={`dari ${stats.totalExams} sesi ujian`}
+          tone="violet"
+          icon={<Icon name="book" size={16} />}
+        />
+        <StatCard
+          label="Ujian Selesai"
+          value={stats.finished}
+          sub="Peserta sudah submit"
+          tone="green"
+          icon={<Icon name="check" size={16} />}
+        />
+        <StatCard
+          label="Rata-rata Nilai"
+          value={stats.average}
+          sub={`KKM tercapai ${stats.passedRate}%`}
+          tone="amber"
+          icon={<Icon name="award" size={16} />}
+        />
       </div>
 
       <div className="grid-2">
-        <section className="card">
-          <div className="card-head">
-            <h2>Progress Submit per Kelas</h2>
-            <Badge tone="green">Live</Badge>
-          </div>
-          {kelasProgress.length === 0 ? (
-            <EmptyState title="Belum ada peserta" hint="Tambahkan peserta untuk melihat progress." />
-          ) : (
-            <div className="stack">
-              {kelasProgress.map((row) => (
-                <div key={row.kelas}>
-                  <div className="row-between small">
-                    <span className="strong">{row.kelas}</span>
-                    <span className="muted">
-                      {row.selesai}/{row.total} selesai
-                    </span>
-                  </div>
-                  <ProgressBar value={row.percent} tone={row.percent >= 80 ? 'green' : row.percent >= 50 ? 'blue' : 'amber'} />
+        <Panel title="Progress Submit per Kelas" subtitle="Peserta yang sudah menyelesaikan ujian">
+          <div className="progress-list">
+            {classProgress.map((kelas) => (
+              <div className="progress-row" key={kelas.id}>
+                <div className="progress-head">
+                  <span className="strong">{kelas.name}</span>
+                  <span className="muted small">
+                    {kelas.done}/{kelas.students} selesai
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="card">
-          <div className="card-head">
-            <h2>Distribusi Grade</h2>
+                <ProgressBar value={kelas.percent} tone={kelas.percent >= 70 ? 'green' : 'blue'} />
+              </div>
+            ))}
+            {classProgress.length === 0 && <EmptyState title="Belum ada kelas" hint="Tambahkan kelas di menu Kelas & Absensi." />}
           </div>
-          <div className="stack">
-            {gradeDist.map((row) => (
-              <div key={row.grade} className="grade-row">
-                <span className="grade-label">{row.grade}</span>
-                <ProgressBar value={row.percent} tone={row.grade.startsWith('A') ? 'green' : row.grade.startsWith('B') ? 'blue' : row.grade.startsWith('C') ? 'amber' : 'red'} />
-                <span className="grade-count">{row.count}</span>
+        </Panel>
+
+        <Panel title="Distribusi Grade" subtitle="Berdasarkan seluruh nilai yang sudah masuk">
+          <div className="grade-list">
+            {gradeBuckets.map((bucket) => (
+              <div className="grade-row" key={bucket.grade}>
+                <span className="grade-key">{bucket.grade}</span>
+                <div className="grade-bar">
+                  <span className={`bar-fill t-${gradeTone(bucket.grade === 'A' ? 90 : bucket.grade === 'B+' ? 78 : bucket.grade === 'B' ? 68 : bucket.grade === 'C+' ? 58 : bucket.grade === 'C' ? 48 : 30)}`} style={{ width: `${bucket.width}%` }} />
+                </div>
+                <span className="grade-count">{bucket.count}</span>
               </div>
             ))}
           </div>
-        </section>
+        </Panel>
       </div>
 
       <div className="grid-2">
-        <section className="card">
-          <div className="card-head">
-            <h2>Mata Kuliah &amp; Ujian</h2>
-            <Badge tone="violet">UTS &amp; UAS</Badge>
-          </div>
-          {ujian.length === 0 ? (
-            <EmptyState title="Belum ada ujian" hint="Buka menu Ujian untuk menambah mata kuliah." />
-          ) : (
-            <div className="stack-sm">
-              {ujian.slice(0, 5).map((row) => (
-                <div key={row.id} className="list-row">
-                  <span className="list-icon">{row.ikon}</span>
-                  <div className="list-main">
-                    <span className="strong">{row.nama}</span>
-                    <span className="muted small">
-                      {row.kode} · {row.tipe} · {row.soal} soal
-                    </span>
+        <Panel title="Sesi Ujian" subtitle="Daftar ujian beserta token masuk">
+          <div className="list">
+            {workspace.exams.map((exam) => (
+              <div className="list-row" key={exam.id}>
+                <div>
+                  <div className="strong">{exam.title}</div>
+                  <div className="muted small">
+                    {exam.subject} · {EXAM_MODE_LABEL[exam.mode]} · {exam.questionIds.length} soal · token{' '}
+                    <span className="mono">{exam.entryToken}</span>
                   </div>
-                  <Badge tone={row.status === 'aktif' ? 'green' : 'gray'}>
-                    {row.status === 'aktif' ? 'Aktif' : 'Belum'}
-                  </Badge>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+                <Badge tone={exam.status === 'berlangsung' ? 'green' : exam.status === 'terjadwal' ? 'blue' : 'gray'}>
+                  {exam.status === 'berlangsung' ? 'Aktif' : exam.status === 'terjadwal' ? 'Terjadwal' : exam.status === 'draft' ? 'Draft' : 'Selesai'}
+                </Badge>
+              </div>
+            ))}
+            {workspace.exams.length === 0 && <EmptyState title="Belum ada ujian" hint="Buat sesi ujian di menu Ujian & Bank Soal." />}
+          </div>
+        </Panel>
 
-        <section className="card">
-          <div className="card-head">
-            <h2>Rekap Nilai Terbaru</h2>
-          </div>
-          {rekap.length === 0 ? (
-            <EmptyState title="Belum ada nilai" hint="Nilai muncul setelah peserta menyelesaikan ujian." />
-          ) : (
-            <div className="stack-sm">
-              {rekap.map((row) => (
-                <div key={row.id} className="list-row">
-                  <div className="list-main">
-                    <span className="strong">{row.nama}</span>
-                    <span className="muted small">
-                      {row.mataKuliah} · {row.nim}
-                    </span>
-                  </div>
-                  <span className={`nilai t-${gradeTone(row.nilai)}`}>{row.nilai}</span>
-                  <Badge tone={gradeTone(row.nilai)}>{gradeOf(row.nilai)}</Badge>
+        <Panel title="Rekap Nilai Terbaru" subtitle="Hasil ujian yang baru dikumpulkan peserta">
+          <div className="list">
+            {recent.map((attempt) => (
+              <div className="list-row" key={attempt.id}>
+                <div>
+                  <div className="strong">{attempt.studentName}</div>
+                  <div className="muted small">{formatDateTime(attempt.submittedAt)}</div>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+                <div className="score-cell">
+                  <span className="score-num">{attempt.score ?? '—'}</span>
+                  <Badge tone={gradeTone(attempt.score ?? null)}>{gradeOf(attempt.score ?? null)}</Badge>
+                </div>
+              </div>
+            ))}
+            {recent.length === 0 && <EmptyState title="Belum ada nilai" hint="Nilai muncul setelah peserta mengumpulkan ujian." />}
+          </div>
+        </Panel>
       </div>
 
-      {!ready && <p className="muted small">Memuat data…</p>}
+      <Panel title="Performa per Mata Pelajaran" subtitle="Rata-rata nilai berdasarkan mapel ujian">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Mata Pelajaran</th>
+                <th className="num">Jumlah Selesai</th>
+                <th className="num">Rata-rata</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subjectRows.map((row) => (
+                <tr key={row.subject}>
+                  <td className="strong">{row.subject}</td>
+                  <td className="num">{row.count}</td>
+                  <td className="num">{row.average}</td>
+                  <td>
+                    <Badge tone={(row.average >= 75 ? 'green' : row.average >= 60 ? 'amber' : 'red') as Tone}>
+                      {row.average >= 75 ? 'Baik' : row.average >= 60 ? 'Cukup' : 'Perlu pendampingan'}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {subjectRows.length === 0 && <EmptyState title="Belum ada data nilai" />}
+        </div>
+      </Panel>
+
+      {user && (
+        <p className="page-foot muted small">
+          Masuk sebagai {user.name} · peran {user.role} · data tersimpan offline di perangkat ini
+        </p>
+      )}
     </div>
   );
 }

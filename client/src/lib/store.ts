@@ -1,20 +1,34 @@
 import { useSyncExternalStore } from 'react';
-import type { AppState, Peserta, PesertaForm, Ujian, UjianForm } from '../types';
+import type {
+  AnswerValue,
+  AppState,
+  AttendanceStatus,
+  Attempt,
+  ChatMessage,
+  Exam,
+  Kelas,
+  Question,
+  Role,
+  Settings,
+  User,
+  Workspace,
+} from '../types';
 import * as db from './db';
-import { fetchState, pushOps } from './api';
+import { fetchWorkspace, pushWorkspace } from './api';
+import { defaultWorkspace } from './seed';
+import { scoreAttempt } from './format';
 
-const initialState: AppState = {
+const SESSION_KEY = 'eujian_session_v2';
+
+let state: AppState = {
   ready: false,
   serverOnline: navigator.onLine,
   syncing: false,
-  pending: 0,
-  lastSync: null,
-  peserta: [],
-  ujian: [],
+  workspace: defaultWorkspace(),
+  sessionUserId: null,
   toast: null,
 };
 
-let state: AppState = initialState;
 const listeners = new Set<() => void>();
 
 function set(patch: Partial<AppState>): void {
@@ -37,6 +51,11 @@ export function useAppState(): AppState {
   return useSyncExternalStore(subscribe, getState, getState);
 }
 
+export function useSession(): User | null {
+  const app = useAppState();
+  return app.workspace.users.find((user) => user.id === app.sessionUserId) ?? null;
+}
+
 export function toast(msg: string, kind: 'ok' | 'warn' = 'ok'): void {
   set({ toast: { id: Date.now(), msg, kind } });
   window.setTimeout(() => {
@@ -44,157 +63,387 @@ export function toast(msg: string, kind: 'ok' | 'warn' = 'ok'): void {
   }, 3200);
 }
 
-const sortPeserta = (rows: Peserta[]) => [...rows].sort((a, b) => a.nama.localeCompare(b.nama));
-const sortUjian = (rows: Ujian[]) => [...rows].sort((a, b) => a.nama.localeCompare(b.nama));
+export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
-async function enqueue(op: db.OutboxOp): Promise<void> {
-  await db.queueOp(op);
-  const ops = await db.readOutbox();
-  set({ pending: ops.length });
+function pushLog(draft: Workspace, actor: string, action: string, detail: string): void {
+  draft.logs = [
+    { id: uid('log'), at: new Date().toISOString(), actor, action, detail },
+    ...draft.logs,
+  ].slice(0, 200);
 }
 
-let syncing = false;
+/** Terapkan perubahan ke workspace, simpan ke IndexedDB, lalu dorong ke server. */
+function commit(mutator: (draft: Workspace) => void): Workspace {
+  const draft = structuredClone(state.workspace);
+  mutator(draft);
+  draft.updatedAt = Date.now();
+  set({ workspace: draft });
+  void db.writeWorkspace(draft);
+  schedulePush();
+  return draft;
+}
 
-/**
- * Kirim antrean perubahan ke server, lalu tarik data terbaru.
- * Gagal koneksi bukan error aplikasi: data lokal tetap dipakai dan
- * perubahan tetap di antrean untuk dikirim saat online kembali.
- */
-export async function syncNow(): Promise<void> {
-  if (syncing) return;
-  syncing = true;
+let pushTimer: number | null = null;
+let pushing = false;
+
+function schedulePush(): void {
+  if (!state.workspace.settings.cloudSyncEnabled) return;
+  if (pushTimer) window.clearTimeout(pushTimer);
+  pushTimer = window.setTimeout(() => {
+    void pushNow();
+  }, 700);
+}
+
+export async function pushNow(): Promise<void> {
+  if (pushing || !state.workspace.settings.cloudSyncEnabled) return;
+  pushing = true;
   set({ syncing: true });
   try {
-    const ops = await db.readOutbox();
-    if (ops.length > 0) {
-      await pushOps(ops);
-      await db.removeOps(ops.map((op) => op.opId as number));
-    }
-
-    const remote = await fetchState();
-    // Hanya timpa cache lokal bila tidak ada perubahan yang masih antre,
-    // supaya suntingan offline tidak hilang.
-    if ((await db.readOutbox()).length === 0) {
-      await db.replaceAll('peserta', remote.peserta);
-      await db.replaceAll('ujian', remote.ujian);
-      set({
-        peserta: sortPeserta(remote.peserta),
-        ujian: sortUjian(remote.ujian),
-        serverOnline: true,
-        lastSync: Date.now(),
-        pending: 0,
-      });
-    } else {
-      set({ serverOnline: true, lastSync: Date.now() });
-    }
+    await pushWorkspace(state.workspace);
+    set({ serverOnline: true });
   } catch {
     set({ serverOnline: false });
   } finally {
-    syncing = false;
+    pushing = false;
     set({ syncing: false });
-    // Perubahan yang masuk saat sinkronisasi berjalan dikirim pada putaran
-    // berikutnya, tanpa menunggu interval 20 detik.
-    if (getState().serverOnline && (await db.readOutbox()).length > 0) {
-      window.setTimeout(() => {
-        void syncNow();
-      }, 400);
-    }
   }
 }
 
-export async function initStore(): Promise<void> {
+async function pullRemote(): Promise<void> {
   try {
-    const [peserta, ujian] = await Promise.all([
-      db.getAll<Peserta>('peserta'),
-      db.getAll<Ujian>('ujian'),
-    ]);
-    const ops = await db.readOutbox();
-    set({
-      ready: true,
-      peserta: sortPeserta(peserta),
-      ujian: sortUjian(ujian),
-      pending: ops.length,
-    });
+    const { workspace } = await fetchWorkspace();
+    if (workspace && workspace.updatedAt > state.workspace.updatedAt) {
+      set({ workspace, serverOnline: true });
+      await db.writeWorkspace(workspace);
+    } else {
+      set({ serverOnline: true });
+    }
   } catch {
-    set({ ready: true });
+    set({ serverOnline: false });
   }
-  void syncNow();
 }
 
-export async function savePeserta(input: PesertaForm): Promise<void> {
-  const existing = input.id ? state.peserta.find((row) => row.id === input.id) : undefined;
-  const id = input.id ?? crypto.randomUUID();
-  const record: Peserta = {
-    benar: existing?.benar ?? null,
-    salah: existing?.salah ?? null,
-    submittedAt:
-      input.status === 'selesai' ? (existing?.submittedAt ?? new Date().toISOString()) : null,
-    ...input,
-    id,
-    updatedAt: Date.now(),
-  };
+export async function initApp(): Promise<void> {
+  try {
+    const local = await db.readWorkspace();
+    const savedSession = localStorage.getItem(SESSION_KEY);
+    if (local) {
+      set({
+        workspace: local,
+        sessionUserId: savedSession && local.users.some((user) => user.id === savedSession) ? savedSession : null,
+      });
+    } else {
+      const seed = defaultWorkspace();
+      set({ workspace: seed });
+      await db.writeWorkspace(seed);
+    }
+  } catch {
+    set({ workspace: defaultWorkspace() });
+  }
+  set({ ready: true });
+  await pullRemote();
+  void pushNow();
 
-  await db.put('peserta', record);
-  const next = state.peserta.some((row) => row.id === id)
-    ? state.peserta.map((row) => (row.id === id ? record : row))
-    : [...state.peserta, record];
-  set({ peserta: sortPeserta(next) });
-
-  await enqueue({ entity: 'peserta', type: 'upsert', id, data: record, ts: record.updatedAt });
-  toast(input.id ? 'Data peserta diperbarui' : 'Peserta baru ditambahkan');
-  void syncNow();
-}
-
-export async function deletePeserta(id: string): Promise<void> {
-  await db.remove('peserta', id);
-  set({ peserta: state.peserta.filter((row) => row.id !== id) });
-  await enqueue({ entity: 'peserta', type: 'delete', id, ts: Date.now() });
-  toast('Peserta dihapus');
-  void syncNow();
-}
-
-export async function saveUjian(input: UjianForm): Promise<void> {
-  const record: Ujian = {
-    ...input,
-    id: input.id ?? crypto.randomUUID(),
-    updatedAt: Date.now(),
-  };
-
-  await db.put('ujian', record);
-  const next = state.ujian.some((row) => row.id === record.id)
-    ? state.ujian.map((row) => (row.id === record.id ? record : row))
-    : [...state.ujian, record];
-  set({ ujian: sortUjian(next) });
-
-  await enqueue({
-    entity: 'ujian',
-    type: 'upsert',
-    id: record.id,
-    data: record,
-    ts: record.updatedAt,
-  });
-  toast(input.id ? 'Data ujian diperbarui' : 'Ujian baru ditambahkan');
-  void syncNow();
-}
-
-export async function deleteUjian(id: string): Promise<void> {
-  await db.remove('ujian', id);
-  set({ ujian: state.ujian.filter((row) => row.id !== id) });
-  await enqueue({ entity: 'ujian', type: 'delete', id, ts: Date.now() });
-  toast('Ujian dihapus');
-  void syncNow();
-}
-
-export function initSync(): void {
   window.addEventListener('online', () => {
     set({ serverOnline: true });
-    void syncNow();
+    void pushNow();
+    void pullRemote();
   });
   window.addEventListener('offline', () => set({ serverOnline: false }));
-  // Sinkron ulang berkala: memulihkan antrean saat koneksi kembali tanpa
-  // menunggu event browser (mis. API sempat mati sebentar).
   window.setInterval(() => {
-    if (!syncing) void syncNow();
+    void pullRemote();
   }, 20000);
-  void initStore();
+}
+
+/* ---------------------------------- auth --------------------------------- */
+
+export function login(username: string, password: string, role: Role): string | null {
+  const { workspace } = state;
+  const user = workspace.users.find(
+    (row) => row.username.toLowerCase() === username.trim().toLowerCase() && row.role === role,
+  );
+  if (!user) return 'Akun tidak ditemukan untuk peran tersebut.';
+  if (user.password !== password) return 'Password salah. Silakan periksa kembali.';
+  if (!user.active) return 'Akun ini dinonaktifkan oleh admin.';
+  if (workspace.settings.appLocked && !user.allowedWhenLocked) {
+    return 'Aplikasi sedang dikunci admin. Hubungi administrator untuk membuka akses.';
+  }
+  localStorage.setItem(SESSION_KEY, user.id);
+  set({ sessionUserId: user.id });
+  commit((draft) => pushLog(draft, user.name, 'Login', `Masuk sebagai ${role}`));
+  return null;
+}
+
+export function registerInstitution(input: {
+  name: string;
+  email: string;
+  username: string;
+  password: string;
+}): string | null {
+  if (state.workspace.users.some((user) => user.username.toLowerCase() === input.username.toLowerCase())) {
+    return 'Username sudah dipakai. Pilih username lain.';
+  }
+  const user: User = {
+    id: uid('usr'),
+    username: input.username,
+    password: input.password,
+    name: input.name,
+    email: input.email,
+    role: 'user',
+    active: true,
+    allowedWhenLocked: true,
+    createdAt: new Date().toISOString(),
+  };
+  commit((draft) => {
+    draft.users.push(user);
+    pushLog(draft, input.name, 'Registrasi lembaga', `Akun operator ${input.username} dibuat`);
+  });
+  return null;
+}
+
+export function logout(): void {
+  const user = currentUser();
+  localStorage.removeItem(SESSION_KEY);
+  set({ sessionUserId: null });
+  if (user) commit((draft) => pushLog(draft, user.name, 'Logout', 'Keluar dari aplikasi'));
+}
+
+export function currentUser(): User | null {
+  return state.workspace.users.find((user) => user.id === state.sessionUserId) ?? null;
+}
+
+/* --------------------------------- settings ------------------------------ */
+
+export function saveSettings(patch: Partial<Settings>): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    draft.settings = { ...draft.settings, ...patch };
+    pushLog(draft, actor, 'Pengaturan diperbarui', Object.keys(patch).join(', '));
+  });
+}
+
+export function saveUser(input: User): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const index = draft.users.findIndex((user) => user.id === input.id);
+    if (index >= 0) draft.users[index] = input;
+    else draft.users.push(input);
+    pushLog(draft, actor, index >= 0 ? 'Akun diperbarui' : 'Akun dibuat', `${input.name} (${input.role})`);
+  });
+}
+
+export function deleteUser(id: string): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const user = draft.users.find((row) => row.id === id);
+    draft.users = draft.users.filter((row) => row.id !== id);
+    if (user) pushLog(draft, actor, 'Akun dihapus', user.name);
+  });
+}
+
+/* ---------------------------------- kelas -------------------------------- */
+
+export function saveClass(input: Kelas): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const index = draft.classes.findIndex((row) => row.id === input.id);
+    if (index >= 0) draft.classes[index] = input;
+    else draft.classes.push(input);
+    pushLog(draft, actor, index >= 0 ? 'Kelas diperbarui' : 'Kelas ditambahkan', input.name);
+  });
+}
+
+export function deleteClass(id: string): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const row = draft.classes.find((item) => item.id === id);
+    draft.classes = draft.classes.filter((item) => item.id !== id);
+    if (row) pushLog(draft, actor, 'Kelas dihapus', row.name);
+  });
+}
+
+export function setAttendance(
+  classId: string,
+  studentId: string,
+  studentName: string,
+  status: AttendanceStatus,
+  note = '',
+): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  const date = new Date().toISOString().slice(0, 10);
+  commit((draft) => {
+    const existing = draft.attendance.find(
+      (row) => row.classId === classId && row.date === date && row.studentId === studentId,
+    );
+    if (existing) {
+      existing.status = status;
+      existing.note = note;
+      existing.updatedAt = new Date().toISOString();
+      existing.recordedBy = actor;
+    } else {
+      draft.attendance.push({
+        id: uid('att'),
+        classId,
+        date,
+        studentId,
+        studentName,
+        status,
+        note,
+        recordedBy: actor,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  });
+}
+
+/* --------------------------------- soal ---------------------------------- */
+
+export function saveQuestion(input: Question): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const index = draft.questions.findIndex((row) => row.id === input.id);
+    if (index >= 0) draft.questions[index] = input;
+    else draft.questions.push(input);
+    pushLog(draft, actor, index >= 0 ? 'Soal diperbarui' : 'Soal ditambahkan', `${input.subject} · ${input.indicator}`);
+  });
+}
+
+export function deleteQuestion(id: string): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const row = draft.questions.find((item) => item.id === id);
+    draft.questions = draft.questions.filter((item) => item.id !== id);
+    draft.exams = draft.exams.map((exam) => ({
+      ...exam,
+      questionIds: exam.questionIds.filter((questionId) => questionId !== id),
+    }));
+    if (row) pushLog(draft, actor, 'Soal dihapus', row.indicator);
+  });
+}
+
+/* --------------------------------- ujian --------------------------------- */
+
+export function saveExam(input: Exam): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const index = draft.exams.findIndex((row) => row.id === input.id);
+    if (index >= 0) draft.exams[index] = input;
+    else draft.exams.push(input);
+    pushLog(draft, actor, index >= 0 ? 'Ujian diperbarui' : 'Ujian dibuat', input.title);
+  });
+}
+
+export function deleteExam(id: string): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const row = draft.exams.find((item) => item.id === id);
+    draft.exams = draft.exams.filter((item) => item.id !== id);
+    draft.attempts = draft.attempts.filter((attempt) => attempt.examId !== id);
+    if (row) pushLog(draft, actor, 'Ujian dihapus', row.title);
+  });
+}
+
+/* -------------------------------- attempt -------------------------------- */
+
+export function startAttempt(exam: Exam, user: User): Attempt {
+  const existing = state.workspace.attempts.find(
+    (attempt) => attempt.examId === exam.id && attempt.studentId === user.id && attempt.status !== 'selesai',
+  );
+  if (existing) return existing;
+
+  const attempt: Attempt = {
+    id: uid('attm'),
+    examId: exam.id,
+    studentId: user.id,
+    studentName: user.name,
+    classId: user.classId ?? exam.classId,
+    startedAt: new Date().toISOString(),
+    submittedAt: null,
+    status: 'berlangsung',
+    answers: {},
+    score: null,
+    violations: 0,
+  };
+  commit((draft) => {
+    draft.attempts.push(attempt);
+    pushLog(draft, user.name, 'Ujian dimulai', exam.title);
+  });
+  return attempt;
+}
+
+export function saveAnswer(attemptId: string, questionId: string, value: AnswerValue): void {
+  commit((draft) => {
+    const attempt = draft.attempts.find((row) => row.id === attemptId);
+    if (!attempt) return;
+    attempt.answers = { ...attempt.answers, [questionId]: value };
+  });
+}
+
+export function submitAttempt(attemptId: string): number {
+  const { workspace } = state;
+  let score = 0;
+  commit((draft) => {
+    const attempt = draft.attempts.find((row) => row.id === attemptId);
+    if (!attempt) return;
+    const exam = draft.exams.find((row) => row.id === attempt.examId);
+    if (exam) score = scoreAttempt(exam, draft.questions, attempt.answers);
+    attempt.score = score;
+    attempt.status = 'selesai';
+    attempt.submittedAt = new Date().toISOString();
+    pushLog(draft, attempt.studentName, 'Ujian dikumpulkan', `${exam?.title ?? attempt.examId} · nilai ${score}`);
+  });
+  void workspace;
+  return score;
+}
+
+export function setAttemptStatus(attemptId: string, status: Attempt['status']): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const attempt = draft.attempts.find((row) => row.id === attemptId);
+    if (!attempt) return;
+    attempt.status = status;
+    pushLog(draft, actor, status === 'dijeda' ? 'Ujian dijeda' : 'Ujian dilanjutkan', attempt.studentName);
+  });
+}
+
+export function resetAttempt(attemptId: string): void {
+  const actor = currentUser()?.name ?? 'Sistem';
+  commit((draft) => {
+    const attempt = draft.attempts.find((row) => row.id === attemptId);
+    draft.attempts = draft.attempts.filter((row) => row.id !== attemptId);
+    if (attempt) pushLog(draft, actor, 'Login peserta direset', attempt.studentName);
+  });
+}
+
+export function recordViolation(attemptId: string): void {
+  commit((draft) => {
+    const attempt = draft.attempts.find((row) => row.id === attemptId);
+    if (attempt) attempt.violations += 1;
+  });
+}
+
+/* --------------------------------- chat ---------------------------------- */
+
+export function sendChat(text: string): void {
+  const user = currentUser();
+  if (!user || !text.trim()) return;
+  const message: ChatMessage = {
+    id: uid('chat'),
+    userId: user.id,
+    name: user.name,
+    role: user.role,
+    text: text.trim(),
+    at: new Date().toISOString(),
+  };
+  commit((draft) => {
+    draft.chat.push(message);
+  });
+}
+
+/* -------------------------------- backup --------------------------------- */
+
+export function restoreWorkspace(next: Workspace): void {
+  commit((draft) => {
+    Object.assign(draft, next, { updatedAt: Date.now() });
+  });
 }

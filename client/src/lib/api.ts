@@ -1,5 +1,4 @@
-import type { Peserta, Ujian } from '../types';
-import type { OutboxOp } from './db';
+import type { Workspace } from '../types';
 
 const TIMEOUT_MS = 6000;
 
@@ -19,13 +18,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-export function fetchState(): Promise<{ peserta: Peserta[]; ujian: Ujian[] }> {
-  return request<{ peserta: Peserta[]; ujian: Ujian[] }>('/api/state');
+export function fetchWorkspace(): Promise<{ workspace: Workspace | null }> {
+  return request<{ workspace: Workspace | null }>('/api/workspace');
 }
 
-export async function pushOps(ops: OutboxOp[]): Promise<void> {
-  await request<{ ok: boolean }>('/api/sync', {
-    method: 'POST',
-    body: JSON.stringify({ ops }),
+export async function pushWorkspace(workspace: Workspace): Promise<void> {
+  await request<{ ok: boolean }>('/api/workspace', {
+    method: 'PUT',
+    body: JSON.stringify(workspace),
   });
 }
